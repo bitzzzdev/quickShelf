@@ -2,7 +2,7 @@ use crate::config::{images_dir, images_file};
 use gdk_pixbuf::Pixbuf;
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -160,4 +160,25 @@ fn sanitize_filename(name: &str) -> String {
     name.chars()
         .filter(|c| c.is_alphanumeric() || *c == '-' || *c == '_')
         .collect::<String>()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn recognizes_supported_image_extensions() {
+        assert!(ImageManager::is_image_path(Path::new("photo.png")));
+        assert!(ImageManager::is_image_path(Path::new("photo.JPG")));
+        assert!(ImageManager::is_image_path(Path::new("image.webp")));
+        assert!(ImageManager::is_image_path(Path::new("vector.svg")));
+        assert!(!ImageManager::is_image_path(Path::new("document.pdf")));
+        assert!(!ImageManager::is_image_path(Path::new("script.sh")));
+    }
+
+    #[test]
+    fn sanitizes_file_names() {
+        assert_eq!(sanitize_filename("my photo (1)!.png"), "myphoto1png");
+        assert_eq!(sanitize_filename("valid-name_123"), "valid-name_123");
+    }
 }

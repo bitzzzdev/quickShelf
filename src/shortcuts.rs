@@ -69,6 +69,7 @@ impl ShortcutManager {
         removed
     }
 
+    #[allow(dead_code)]
     pub fn launch(&self, id: &str) -> Result<(), std::io::Error> {
         if let Some(s) = self.shortcuts.iter().find(|s| s.id == id) {
             Self::launch_exec(&s.exec)?;
@@ -228,4 +229,46 @@ fn is_command_available(cmd: &str) -> bool {
         }
     }
     false
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cleans_field_codes_from_exec_command() {
+        assert_eq!(clean_exec("firefox %u"), "firefox");
+        assert_eq!(clean_exec("gimp-2.10 %U %f"), "gimp-2.10");
+        assert_eq!(clean_exec("code --new-window %F"), "code --new-window");
+    }
+
+    #[test]
+    fn parses_desktop_entry_fields() {
+        let content = "[Desktop Entry]\nName=Test App\nExec=test-bin %u\nIcon=test-icon\nType=Application\n";
+        let temp_dir = std::env::temp_dir();
+        let path = temp_dir.join("test_app.desktop");
+        fs::write(&path, content).unwrap();
+
+        let shortcut = ShortcutManager::from_desktop_file(&path);
+        let _ = fs::remove_file(&path);
+
+        assert!(shortcut.is_some());
+        let s = shortcut.unwrap();
+        assert_eq!(s.name, "Test App");
+        assert_eq!(s.exec, "test-bin");
+        assert_eq!(s.icon, "test-icon");
+    }
+
+    #[test]
+    fn skips_nodisplay_desktop_entries() {
+        let content = "[Desktop Entry]\nName=Hidden App\nExec=hidden\nIcon=hidden\nNoDisplay=true\n";
+        let temp_dir = std::env::temp_dir();
+        let path = temp_dir.join("hidden_app.desktop");
+        fs::write(&path, content).unwrap();
+
+        let shortcut = ShortcutManager::from_desktop_file(&path);
+        let _ = fs::remove_file(&path);
+
+        assert!(shortcut.is_none());
+    }
 }

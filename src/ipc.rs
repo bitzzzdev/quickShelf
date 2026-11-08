@@ -28,6 +28,7 @@ pub fn send_command(cmd: &str) -> Result<String, std::io::Error> {
     Ok(response.trim().to_string())
 }
 
+#[allow(dead_code)]
 pub fn is_running() -> bool {
     let socket_path = ipc_socket_path();
     if !socket_path.exists() {

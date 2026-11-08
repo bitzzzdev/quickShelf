@@ -4,12 +4,11 @@ mod ipc;
 mod shortcuts;
 mod ui;
 
-use config::ShelfConfig;
 use images::ImageManager;
 use ipc::{IpcMessage, send_command, start_server};
 use shortcuts::ShortcutManager;
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::mpsc::channel;
 use std::time::Duration;
 use ui::MainWindow;
@@ -185,48 +184,36 @@ fn run_gui(is_homescreen: bool) {
     main_window.show();
 
     // Poll IPC messages in GTK main thread
-    let win_weak = main_window.window().downgrade();
+    let mw = main_window.clone();
     glib::timeout_add_local(Duration::from_millis(50), move || {
         while let Ok(msg) = receiver.try_recv() {
             match msg {
                 IpcMessage::Toggle => {
-                    if let Some(w) = win_weak.upgrade() {
-                        if w.is_visible() {
-                            w.hide();
-                        } else {
-                            w.show_all();
-                            w.present();
-                        }
-                    }
+                    mw.toggle_visibility();
                 }
                 IpcMessage::Show => {
-                    if let Some(w) = win_weak.upgrade() {
-                        w.show_all();
-                        w.present();
-                    }
+                    mw.show();
                 }
                 IpcMessage::Hide => {
-                    if let Some(w) = win_weak.upgrade() {
-                        w.hide();
-                    }
+                    mw.hide();
                 }
                 IpcMessage::ReloadStyle => {
-                    main_window.reload_style();
+                    mw.reload_style();
                 }
                 IpcMessage::Refresh => {
-                    main_window.refresh();
+                    mw.refresh();
                 }
                 IpcMessage::AddImage(path) => {
                     let mut mgr = ImageManager::load();
                     let _ = mgr.add_from_path(Path::new(&path));
-                    main_window.refresh();
+                    mw.refresh();
                 }
                 IpcMessage::AddShortcut(path) => {
                     let p = Path::new(&path);
                     if let Some(sc) = ShortcutManager::from_desktop_file(p) {
                         let mut mgr = ShortcutManager::load();
                         mgr.add(sc);
-                        main_window.refresh();
+                        mw.refresh();
                     }
                 }
             }

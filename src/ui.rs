@@ -1,9 +1,11 @@
 use crate::config::{style_file, ShelfConfig};
 use crate::images::{ImageItem, ImageManager};
-use crate::shortcuts::{Shortcut, ShortcutManager};
+use crate::shortcuts::ShortcutManager;
 use gdk::prelude::*;
 use gdk_pixbuf::Pixbuf;
+use gtk::pango;
 use gtk::prelude::*;
+use gtk_layer_shell::LayerShell;
 use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -122,10 +124,12 @@ const DEFAULT_CSS: &str = r#"
 pub struct AppState {
     pub shortcuts: ShortcutManager,
     pub images: ImageManager,
+    #[allow(dead_code)]
     pub config: ShelfConfig,
     pub active_view: String, // "both", "apps", "media"
 }
 
+#[derive(Clone)]
 pub struct MainWindow {
     window: gtk::Window,
     state: Rc<RefCell<AppState>>,
@@ -151,12 +155,12 @@ impl MainWindow {
 
         let window = gtk::Window::new(gtk::WindowType::Toplevel);
         window.set_title("Quick Shelf");
-        window.set_wmclass("quick-shelf", "quick-shelf");
+        window.set_role("quick-shelf");
         window.set_default_size(config.width, -1);
         window.set_resizable(false);
 
         if gtk_layer_shell::is_supported() {
-            gtk_layer_shell::init_for_window(&window);
+            window.init_layer_shell();
             let layer = if is_homescreen {
                 if config.layer.to_lowercase() == "background" {
                     gtk_layer_shell::Layer::Background
@@ -166,27 +170,27 @@ impl MainWindow {
             } else {
                 gtk_layer_shell::Layer::Top
             };
-            gtk_layer_shell::set_layer(&window, layer);
-            gtk_layer_shell::set_keyboard_mode(&window, gtk_layer_shell::KeyboardMode::OnDemand);
-            gtk_layer_shell::set_exclusive_zone(&window, 0);
+            window.set_layer(layer);
+            window.set_keyboard_mode(gtk_layer_shell::KeyboardMode::OnDemand);
+            window.set_exclusive_zone(0);
 
             // Anchors
             let anchor = config.homescreen_anchor.to_lowercase();
             if anchor.contains("top") {
-                gtk_layer_shell::set_anchor(&window, gtk_layer_shell::Edge::Top, true);
-                gtk_layer_shell::set_margin(&window, gtk_layer_shell::Edge::Top, config.margin_top);
+                window.set_anchor(gtk_layer_shell::Edge::Top, true);
+                window.set_layer_shell_margin(gtk_layer_shell::Edge::Top, config.margin_top);
             }
             if anchor.contains("bottom") {
-                gtk_layer_shell::set_anchor(&window, gtk_layer_shell::Edge::Bottom, true);
-                gtk_layer_shell::set_margin(&window, gtk_layer_shell::Edge::Bottom, config.margin_bottom);
+                window.set_anchor(gtk_layer_shell::Edge::Bottom, true);
+                window.set_layer_shell_margin(gtk_layer_shell::Edge::Bottom, config.margin_bottom);
             }
             if anchor.contains("right") {
-                gtk_layer_shell::set_anchor(&window, gtk_layer_shell::Edge::Right, true);
-                gtk_layer_shell::set_margin(&window, gtk_layer_shell::Edge::Right, config.margin_right);
+                window.set_anchor(gtk_layer_shell::Edge::Right, true);
+                window.set_layer_shell_margin(gtk_layer_shell::Edge::Right, config.margin_right);
             }
             if anchor.contains("left") {
-                gtk_layer_shell::set_anchor(&window, gtk_layer_shell::Edge::Left, true);
-                gtk_layer_shell::set_margin(&window, gtk_layer_shell::Edge::Left, config.margin_left);
+                window.set_anchor(gtk_layer_shell::Edge::Left, true);
+                window.set_layer_shell_margin(gtk_layer_shell::Edge::Left, config.margin_left);
             }
         } else {
             window.set_type_hint(gdk::WindowTypeHint::Utility);
@@ -209,15 +213,15 @@ impl MainWindow {
             );
         }
 
-        let outer_box = gtk::Box::new(gtk::Orientation::VERTICAL, 0);
+        let outer_box = gtk::Box::new(gtk::Orientation::Vertical, 0);
         outer_box.style_context().add_class("quick-shelf-window");
 
         let main_stack = gtk::Stack::new();
-        main_stack.set_transition_type(gtk::StackTransitionType::CROSSFADE);
+        main_stack.set_transition_type(gtk::StackTransitionType::Crossfade);
         main_stack.set_transition_duration(150);
 
-        let content_box = gtk::Box::new(gtk::Orientation::VERTICAL, 8);
-        let preview_box = gtk::Box::new(gtk::Orientation::VERTICAL, 8);
+        let content_box = gtk::Box::new(gtk::Orientation::Vertical, 8);
+        let preview_box = gtk::Box::new(gtk::Orientation::Vertical, 8);
         preview_box.style_context().add_class("qs-preview-overlay");
 
         main_stack.add_named(&content_box, "content");
@@ -241,6 +245,7 @@ impl MainWindow {
         app
     }
 
+    #[allow(dead_code)]
     pub fn window(&self) -> &gtk::Window {
         &self.window
     }
@@ -357,7 +362,7 @@ impl MainWindow {
         drop(st);
 
         // Header
-        let header_box = gtk::Box::new(gtk::Orientation::HORIZONTAL, 8);
+        let header_box = gtk::Box::new(gtk::Orientation::Horizontal, 8);
         header_box.style_context().add_class("qs-header");
 
         let title_label = gtk::Label::new(Some("󱂬 Quick Shelf"));
@@ -369,7 +374,7 @@ impl MainWindow {
         header_box.pack_start(&badge, false, false, 0);
 
         // View mode pills
-        let view_box = gtk::Box::new(gtk::Orientation::HORIZONTAL, 4);
+        let view_box = gtk::Box::new(gtk::Orientation::Horizontal, 4);
         let btn_both = gtk::Button::with_label("All");
         let btn_apps = gtk::Button::with_label("Apps");
         let btn_media = gtk::Button::with_label("Media");
@@ -427,7 +432,7 @@ impl MainWindow {
         }
 
         if active_view == "both" {
-            let sep = gtk::Separator::new(gtk::Orientation::HORIZONTAL);
+            let sep = gtk::Separator::new(gtk::Orientation::Horizontal);
             content_box.pack_start(&sep, false, false, 4);
         }
 
@@ -446,7 +451,7 @@ impl MainWindow {
         state: &Rc<RefCell<AppState>>,
         window: &gtk::Window,
     ) {
-        let sec_header = gtk::Box::new(gtk::Orientation::HORIZONTAL, 6);
+        let sec_header = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         let title = gtk::Label::new(Some("Shortcuts"));
         title.style_context().add_class("qs-section-title");
         sec_header.pack_start(&title, false, false, 0);
@@ -465,7 +470,7 @@ impl MainWindow {
         content_box.pack_start(&sec_header, false, false, 0);
 
         let flow = gtk::FlowBox::new();
-        flow.set_valign(gtk::Align::START);
+        flow.set_valign(gtk::Align::Start);
         flow.set_max_children_per_line(5);
         flow.set_min_children_per_line(3);
         flow.set_selection_mode(gtk::SelectionMode::None);
@@ -477,8 +482,8 @@ impl MainWindow {
             let card = gtk::Button::new();
             card.style_context().add_class("qs-app-card");
 
-            let card_box = gtk::Box::new(gtk::Orientation::VERTICAL, 2);
-            card_box.set_halign(gtk::Align::CENTER);
+            let card_box = gtk::Box::new(gtk::Orientation::Vertical, 2);
+            card_box.set_halign(gtk::Align::Center);
 
             let icon_img = if gtk::IconTheme::default()
                 .map(|t| t.has_icon(&item.icon))
@@ -565,7 +570,7 @@ impl MainWindow {
         state: &Rc<RefCell<AppState>>,
         window: &gtk::Window,
     ) {
-        let sec_header = gtk::Box::new(gtk::Orientation::HORIZONTAL, 6);
+        let sec_header = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         let title = gtk::Label::new(Some("Image Shelf"));
         title.style_context().add_class("qs-section-title");
         sec_header.pack_start(&title, false, false, 0);
@@ -591,7 +596,7 @@ impl MainWindow {
         let st_pick = stack.clone();
         let w_pick = window.clone();
         pick_btn.connect_clicked(move |_| {
-            let dialog = gtk::FileChooserDialog::new(
+            let dialog = gtk::FileChooserDialog::with_buttons(
                 Some("Select Image"),
                 Some(&w_pick),
                 gtk::FileChooserAction::Open,
@@ -603,7 +608,7 @@ impl MainWindow {
             let filter = gtk::FileFilter::new();
             filter.set_name(Some("Images"));
             filter.add_pixbuf_formats();
-            dialog.add_filter(&filter);
+            dialog.add_filter(filter);
 
             if dialog.run() == gtk::ResponseType::Accept {
                 if let Some(filename) = dialog.filename() {
@@ -621,9 +626,9 @@ impl MainWindow {
 
         let images = state.borrow().images.list().to_vec();
         if images.is_empty() {
-            let dropzone = gtk::Box::new(gtk::Orientation::VERTICAL, 4);
+            let dropzone = gtk::Box::new(gtk::Orientation::Vertical, 4);
             dropzone.style_context().add_class("qs-dropzone");
-            dropzone.set_halign(gtk::Align::FILL);
+            dropzone.set_halign(gtk::Align::Fill);
 
             let icon = gtk::Image::from_icon_name(Some("insert-image"), gtk::IconSize::Dialog);
             dropzone.pack_start(&icon, false, false, 0);
@@ -641,7 +646,7 @@ impl MainWindow {
             scrolled.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
 
             let flow = gtk::FlowBox::new();
-            flow.set_valign(gtk::Align::START);
+            flow.set_valign(gtk::Align::Start);
             flow.set_max_children_per_line(4);
             flow.set_min_children_per_line(3);
             flow.set_selection_mode(gtk::SelectionMode::None);
@@ -780,7 +785,7 @@ impl MainWindow {
             preview_box.remove(&child);
         }
 
-        let top_bar = gtk::Box::new(gtk::Orientation::HORIZONTAL, 6);
+        let top_bar = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         let back_btn = gtk::Button::with_label("← Back");
         back_btn.style_context().add_class("qs-btn");
         let st_back = stack.clone();
@@ -815,8 +820,8 @@ impl MainWindow {
         preview_box.pack_start(&meta_label, false, false, 0);
 
         // Action buttons
-        let actions_box = gtk::Box::new(gtk::Orientation::HORIZONTAL, 6);
-        actions_box.set_halign(gtk::Align::CENTER);
+        let actions_box = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+        actions_box.set_halign(gtk::Align::Center);
 
         let btn_copy_img = gtk::Button::with_label("Copy Image");
         btn_copy_img.style_context().add_class("qs-btn");
@@ -892,7 +897,7 @@ impl MainWindow {
         let apps = ShortcutManager::list_system_apps();
         for app in apps {
             let row = gtk::ListBoxRow::new();
-            let row_box = gtk::Box::new(gtk::Orientation::HORIZONTAL, 8);
+            let row_box = gtk::Box::new(gtk::Orientation::Horizontal, 8);
             row_box.set_border_width(6);
 
             let icon_img = if gtk::IconTheme::default()
@@ -906,7 +911,7 @@ impl MainWindow {
             row_box.pack_start(&icon_img, false, false, 0);
 
             let name_lbl = gtk::Label::new(Some(&app.name));
-            name_lbl.set_halign(gtk::Align::START);
+            name_lbl.set_halign(gtk::Align::Start);
             row_box.pack_start(&name_lbl, true, true, 0);
 
             row.add(&row_box);
