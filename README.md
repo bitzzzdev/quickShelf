@@ -1,6 +1,8 @@
 # Quick Shelf
 
-Quick Shelf is a lightweight Wayland desktop widget and Waybar popover written in Rust with GTK3 and gtk-layer-shell. It provides a quick-access shelf for application shortcuts and an image drop zone with instant thumbnail previews, metadata inspection, and two-way drag-and-drop.
+Desktop shelf widget and Waybar popover for application shortcuts and image drop previews.
+
+Quick Shelf is a Wayland desktop widget and Waybar popover written in Rust with GTK3 and gtk-layer-shell. It provides a quick-access shelf for application shortcuts and an image drop zone with instant thumbnail previews, metadata inspection, and two-way drag and drop.
 
 ## Features
 

@@ -6,6 +6,17 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+### Fixed
+- Fixed GTK3 and gtk-layer-shell compilation failures in GitHub Actions CI runner.
+- Corrected enum variant casing to PascalCase for `Orientation`, `Align`, and `StackTransitionType`.
+- Replaced deprecated file chooser constructor with `FileChooserDialog::with_buttons` and owned `FileFilter`.
+- Integrated `LayerShell` trait methods for layer configuration, anchors, margins, and keyboard interactivity.
+- Removed unused imports and dead code warnings across modules.
+
+### Added
+- Added repository description and metadata in Cargo manifest.
+- Added unit tests for desktop entry parsing, exec argument sanitation, and image format detection.
+
 ## [0.1.0] - 2026-11-08
 
 ### Added
