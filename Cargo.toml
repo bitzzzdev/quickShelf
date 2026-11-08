@@ -5,6 +5,7 @@ edition = "2021"
 description = "Lightweight desktop shelf widget and Waybar module for app shortcuts and image drop previews"
 authors = ["bitzzdev"]
 license = "MIT"
+repository = "https://github.com/bitzzdev/quickShelf"
 
 [dependencies]
 gtk = { version = "0.18", features = ["v3_24"] }

@@ -13,8 +13,8 @@ Thank you for your interest in contributing to Quick Shelf.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/bitzzdev/quick-shelf.git
-   cd quick-shelf
+   git clone https://github.com/bitzzdev/quickShelf.git
+   cd quickShelf
    ```
 
 2. Install system development headers:

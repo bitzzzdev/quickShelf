@@ -37,7 +37,7 @@ Download the latest release binary directly:
 
 ```bash
 mkdir -p ~/.local/bin
-curl -fsSL https://github.com/bitzzdev/quick-shelf/releases/download/quick-shelf-latest/quick-shelf-x86_64 -o ~/.local/bin/quick-shelf
+curl -fsSL https://github.com/bitzzdev/quickShelf/releases/download/quick-shelf-latest/quick-shelf-x86_64 -o ~/.local/bin/quick-shelf
 chmod +x ~/.local/bin/quick-shelf
 ```
 
