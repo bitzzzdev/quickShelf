@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-08
+
 ### Added
 - Initial release of Quick Shelf widget.
 - Persistent homescreen widget mode using Wayland Layer Shell (bottom layer behind windows).
