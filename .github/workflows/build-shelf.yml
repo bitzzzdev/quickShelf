@@ -1,0 +1,96 @@
+name: Build and Release Quick Shelf
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'src/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
+      - main
+      - dev
+  release:
+    types:
+      - created
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build x86_64 Linux Binary
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libgtk-layer-shell-dev \
+            libglib2.0-dev \
+            libgdk-pixbuf-2.0-dev \
+            libcairo2-dev \
+            libpango1.0-dev \
+            pkg-config
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Check code
+        run: cargo check --verbose
+
+      - name: Run tests
+        run: cargo test --verbose
+
+      - name: Build release binary
+        run: cargo build --release --verbose
+
+      - name: Package artifacts
+        run: |
+          mkdir -p dist
+          cp target/release/quick-shelf dist/quick-shelf-x86_64
+          chmod +x dist/quick-shelf-x86_64
+          tar -czf dist/quick-shelf-x86_64-unknown-linux-gnu.tar.gz -C target/release quick-shelf
+          cd dist
+          sha256sum quick-shelf-x86_64 > quick-shelf-x86_64.sha256
+          sha256sum quick-shelf-x86_64-unknown-linux-gnu.tar.gz > quick-shelf-x86_64-unknown-linux-gnu.tar.gz.sha256
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: quick-shelf-linux-x86_64
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Publish rolling release
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' || github.event_name == 'workflow_dispatch') && github.repository_owner == 'bitzzdev'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: quick-shelf-latest
+          name: "Quick Shelf Latest Release"
+          body: |
+            Automated release build of Quick Shelf for x86_64 Linux.
+            Built from commit ${{ github.sha }} on branch ${{ github.ref_name }}.
+          draft: false
+          prerelease: false
+          files: |
+            dist/quick-shelf-x86_64
+            dist/quick-shelf-x86_64.sha256
+            dist/quick-shelf-x86_64-unknown-linux-gnu.tar.gz
+            dist/quick-shelf-x86_64-unknown-linux-gnu.tar.gz.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
