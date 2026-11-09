@@ -110,6 +110,7 @@ impl MainWindow {
         main_stack.set_transition_duration(150);
 
         let content_box = gtk::Box::new(gtk::Orientation::Vertical, 8);
+        content_box.style_context().add_class("qs-mainbox");
         let preview_box = gtk::Box::new(gtk::Orientation::Vertical, 8);
         preview_box.style_context().add_class("qs-preview-overlay");
 

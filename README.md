@@ -132,7 +132,7 @@ Quick Shelf stores its configuration in `~/.config/quick-shelf/config.json`.
 
 ## Theming and Styling
 
-Quick Shelf uses a Rofi-like theming approach. Colors are decoupled from layout styles through GTK CSS variables (`@define-color`). You can swap built-in themes, create your own palette file to match your dotfiles, or hook into dynamic wallpaper generators like Matugen, Pywal, or Wallust.
+Quick Shelf uses a Rofi-like theming approach. The default layout uses square surfaces, a two-pixel accent border, compact controls, and flat selection states. Colors are decoupled from layout styles through GTK CSS variables (`@define-color`). You can swap built-in themes, create your own palette file to match your dotfiles, or hook into dynamic wallpaper generators like Matugen, Pywal, or Wallust.
 
 ### Built-in Themes
 
@@ -175,6 +175,20 @@ To make a theme that matches your Rofi or Waybar config, place a `.css` file ins
 @define-color border-color rgba(70, 75, 95, 0.55);
 @define-color card-bg rgba(30, 30, 42, 0.65);
 @define-color card-hover rgba(70, 75, 95, 0.85);
+```
+
+The built-in layout is loaded before `~/.config/quick-shelf/style.css`, so the
+last file can override geometry and typography as well as colors:
+
+```css
+.quick-shelf-window {
+    border-width: 3px;
+}
+
+.qs-app-card {
+    min-width: 76px;
+    min-height: 76px;
+}
 ```
 
 Then select it via command line or config:

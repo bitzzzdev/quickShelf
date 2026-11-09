@@ -26,6 +26,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Added repository description and metadata in Cargo manifest.
 - Added unit tests for desktop entry parsing, exec argument sanitation, and image format detection.
 
+### Changed
+- Updated the default layout to use the square surfaces, flat controls, and accent border used by the bitzdots Rofi themes.
+
 ## [0.1.0] - 2026-11-08
 
 ### Added

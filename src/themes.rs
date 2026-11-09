@@ -109,16 +109,20 @@ pub const ROSE_PINE_PALETTE: &str = r#"
 pub const BASE_RULES_CSS: &str = r#"
 .quick-shelf-window {
     background-color: @bg;
-    border: 1px solid @border-color;
-    border-radius: 18px;
-    padding: 14px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    border: 2px solid @selected;
+    border-radius: 0;
+    padding: 0;
 }
 
 .qs-header {
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: @bg-alt;
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    border-bottom: 2px solid @border-color;
+}
+
+.qs-mainbox {
+    padding: 8px 12px 12px;
 }
 
 .qs-title {
@@ -128,20 +132,20 @@ pub const BASE_RULES_CSS: &str = r#"
 }
 
 .qs-badge {
-    background: @active;
-    color: @selected;
-    border-radius: 10px;
+    background: @selected;
+    color: @bg;
+    border-radius: 0;
     padding: 2px 8px;
     font-size: 11px;
     font-weight: 600;
 }
 
 .qs-btn {
-    background: @active;
+    background: @bg-alt;
     color: @fg;
     border: 1px solid @border-color;
-    border-radius: 8px;
-    padding: 4px 8px;
+    border-radius: 0;
+    padding: 6px 10px;
 }
 
 .qs-btn:hover {
@@ -160,11 +164,10 @@ pub const BASE_RULES_CSS: &str = r#"
 .qs-app-card {
     background: @card-bg;
     border: 1px solid @border-color;
-    border-radius: 12px;
+    border-radius: 0;
     padding: 8px 6px;
     min-width: 68px;
     min-height: 68px;
-    transition: all 150ms ease;
 }
 
 .qs-app-card:hover {
@@ -181,19 +184,17 @@ pub const BASE_RULES_CSS: &str = r#"
 .qs-image-card {
     background: @card-bg;
     border: 1px solid @border-color;
-    border-radius: 10px;
+    border-radius: 0;
     padding: 4px;
-    transition: all 150ms ease;
 }
 
 .qs-image-card:hover {
     border-color: @selected;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .qs-dropzone {
     border: 2px dashed @border-color;
-    border-radius: 12px;
+    border-radius: 0;
     padding: 18px 12px;
     background: @card-bg;
 }
@@ -205,8 +206,8 @@ pub const BASE_RULES_CSS: &str = r#"
 
 .qs-preview-overlay {
     background: @bg;
-    border-radius: 16px;
-    padding: 12px;
+    border-radius: 0;
+    padding: 16px;
     border: 1px solid @border-color;
 }
 
@@ -326,6 +327,7 @@ mod tests {
         let css = load_effective_css("tokyonight");
         assert!(css.contains("@define-color bg"));
         assert!(css.contains(".quick-shelf-window"));
+        assert!(css.contains(".qs-mainbox"));
         assert!(css.contains(".qs-title"));
         assert!(css.contains(".qs-app-card"));
     }
