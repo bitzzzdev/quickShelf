@@ -11,6 +11,7 @@ pub enum IpcMessage {
     Show,
     Hide,
     ReloadStyle,
+    SetTheme(String),
     Refresh,
     AddImage(String),
     AddShortcut(String),
@@ -78,6 +79,16 @@ pub fn start_server(sender: Sender<IpcMessage>) -> Result<(), std::io::Error> {
                         }
                         "reload-style" => {
                             let _ = sender.send(IpcMessage::ReloadStyle);
+                            "ok\n".to_string()
+                        }
+                        s if s.starts_with("set-theme ") => {
+                            let theme = s.trim_start_matches("set-theme ").trim().to_string();
+                            let _ = sender.send(IpcMessage::SetTheme(theme));
+                            "ok\n".to_string()
+                        }
+                        s if s.starts_with("theme ") => {
+                            let theme = s.trim_start_matches("theme ").trim().to_string();
+                            let _ = sender.send(IpcMessage::SetTheme(theme));
                             "ok\n".to_string()
                         }
                         "refresh" => {

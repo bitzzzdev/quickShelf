@@ -13,6 +13,12 @@ pub struct ShelfConfig {
     pub max_height: i32,
     pub default_view: String,
     pub layer: String,
+    #[serde(default = "default_theme")]
+    pub theme: String,
+}
+
+fn default_theme() -> String {
+    "default".to_string()
 }
 
 impl Default for ShelfConfig {
@@ -27,6 +33,7 @@ impl Default for ShelfConfig {
             max_height: 620,
             default_view: "both".to_string(),
             layer: "bottom".to_string(),
+            theme: default_theme(),
         }
     }
 }
@@ -63,6 +70,16 @@ pub fn config_file() -> PathBuf {
 
 pub fn style_file() -> PathBuf {
     config_dir().join("style.css")
+}
+
+pub fn colors_file() -> PathBuf {
+    config_dir().join("colors.css")
+}
+
+pub fn themes_dir() -> PathBuf {
+    let p = config_dir().join("themes");
+    let _ = fs::create_dir_all(&p);
+    p
 }
 
 pub fn ipc_socket_path() -> PathBuf {

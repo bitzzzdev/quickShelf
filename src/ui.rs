@@ -1,6 +1,7 @@
-use crate::config::{style_file, ShelfConfig};
+use crate::config::ShelfConfig;
 use crate::images::{ImageItem, ImageManager};
 use crate::shortcuts::ShortcutManager;
+use crate::themes;
 use gdk::prelude::*;
 use gdk_pixbuf::Pixbuf;
 use gtk::pango;
@@ -10,121 +11,9 @@ use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-const DEFAULT_CSS: &str = r#"
-.quick-shelf-window {
-    background-color: rgba(22, 13, 17, 0.92);
-    border: 1px solid rgba(110, 68, 80, 0.45);
-    border-radius: 18px;
-    padding: 14px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-}
-
-.qs-header {
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.qs-title {
-    font-size: 14px;
-    font-weight: bold;
-    color: #f8e4df;
-}
-
-.qs-badge {
-    background: #35182c;
-    color: #d46478;
-    border-radius: 10px;
-    padding: 2px 8px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.qs-btn {
-    background: rgba(53, 24, 44, 0.5);
-    color: #f8e4df;
-    border: 1px solid rgba(110, 68, 80, 0.3);
-    border-radius: 8px;
-    padding: 4px 8px;
-}
-
-.qs-btn:hover {
-    background: #d46478;
-    color: #160d11;
-}
-
-.qs-section-title {
-    font-size: 12px;
-    font-weight: bold;
-    color: #d4a8a2;
-    margin-top: 6px;
-    margin-bottom: 6px;
-}
-
-.qs-app-card {
-    background: rgba(38, 20, 32, 0.6);
-    border: 1px solid rgba(110, 68, 80, 0.25);
-    border-radius: 12px;
-    padding: 8px 6px;
-    min-width: 68px;
-    min-height: 68px;
-    transition: all 150ms ease;
-}
-
-.qs-app-card:hover {
-    background: rgba(53, 24, 44, 0.85);
-    border-color: #d46478;
-}
-
-.qs-app-label {
-    font-size: 11px;
-    color: #f8e4df;
-    margin-top: 4px;
-}
-
-.qs-image-card {
-    background: rgba(38, 20, 32, 0.6);
-    border: 1px solid rgba(110, 68, 80, 0.3);
-    border-radius: 10px;
-    padding: 4px;
-    transition: all 150ms ease;
-}
-
-.qs-image-card:hover {
-    border-color: #d46478;
-    box-shadow: 0 4px 12px rgba(212, 100, 120, 0.25);
-}
-
-.qs-dropzone {
-    border: 2px dashed rgba(110, 68, 80, 0.5);
-    border-radius: 12px;
-    padding: 18px 12px;
-    background: rgba(22, 13, 17, 0.4);
-}
-
-.qs-dropzone:hover {
-    border-color: #d46478;
-    background: rgba(53, 24, 44, 0.3);
-}
-
-.qs-preview-overlay {
-    background: rgba(22, 13, 17, 0.96);
-    border-radius: 16px;
-    padding: 12px;
-    border: 1px solid rgba(212, 100, 120, 0.3);
-}
-
-.qs-tab-active {
-    background: #d46478;
-    color: #160d11;
-    font-weight: bold;
-}
-"#;
-
 pub struct AppState {
     pub shortcuts: ShortcutManager,
     pub images: ImageManager,
-    #[allow(dead_code)]
     pub config: ShelfConfig,
     pub active_view: String, // "both", "apps", "media"
 }
@@ -204,7 +93,7 @@ impl MainWindow {
 
         // Apply CSS
         let css_provider = gtk::CssProvider::new();
-        Self::load_style(&css_provider);
+        Self::load_style(&css_provider, &config.theme);
         if let Some(screen) = gdk::Screen::default() {
             gtk::StyleContext::add_provider_for_screen(
                 &screen,
@@ -271,16 +160,22 @@ impl MainWindow {
     }
 
     pub fn reload_style(&self) {
-        Self::load_style(&self.css_provider);
+        let theme = self.state.borrow().config.theme.clone();
+        Self::load_style(&self.css_provider, &theme);
     }
 
-    fn load_style(provider: &gtk::CssProvider) {
-        let path = style_file();
-        if path.exists() {
-            let _ = provider.load_from_path(path.to_str().unwrap());
-        } else {
-            let _ = provider.load_from_data(DEFAULT_CSS.as_bytes());
+    pub fn set_theme(&self, theme: &str) {
+        {
+            let mut st = self.state.borrow_mut();
+            st.config.theme = theme.to_string();
+            let _ = st.config.save();
         }
+        self.reload_style();
+    }
+
+    fn load_style(provider: &gtk::CssProvider, theme: &str) {
+        let css = themes::load_effective_css(theme);
+        let _ = provider.load_from_data(css.as_bytes());
     }
 
     pub fn refresh(&self) {

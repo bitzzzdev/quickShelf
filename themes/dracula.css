@@ -1,0 +1,11 @@
+/* Quick Shelf - Dracula Theme */
+@define-color bg rgba(30, 31, 41, 0.94);
+@define-color bg-alt rgba(40, 42, 54, 0.75);
+@define-color fg #f8f8f2;
+@define-color fg-muted #6272a4;
+@define-color selected #bd93f9;
+@define-color active #50fa7b;
+@define-color urgent #ff5555;
+@define-color border-color rgba(98, 114, 164, 0.55);
+@define-color card-bg rgba(40, 42, 54, 0.65);
+@define-color card-hover rgba(68, 71, 90, 0.85);

@@ -1,0 +1,11 @@
+/* Quick Shelf - Everforest Theme */
+@define-color bg rgba(50, 61, 67, 0.94);
+@define-color bg-alt rgba(60, 71, 77, 0.75);
+@define-color fg #dad1be;
+@define-color fg-muted #a7c080;
+@define-color selected #7fbbb3;
+@define-color active #a7c080;
+@define-color urgent #e67e80;
+@define-color border-color rgba(79, 90, 96, 0.55);
+@define-color card-bg rgba(60, 71, 77, 0.65);
+@define-color card-hover rgba(79, 90, 96, 0.85);

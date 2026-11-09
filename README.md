@@ -93,6 +93,8 @@ OPTIONS:
     --popup                   Show popup shelf window
     --hide                    Hide running popup shelf window
     --status                  Output Waybar-compatible JSON status
+    --theme <NAME>            Apply a theme by name (built-in or from ~/.config/quick-shelf/themes/)
+    --list-themes             List all available built-in and user themes
     --reload-style            Reload CSS styling in running instance
     --add-shortcut <PATH>     Add an application .desktop file or executable
     --add-image <PATH>        Add an image to the shelf
@@ -107,6 +109,7 @@ Quick Shelf stores its configuration in `~/.config/quick-shelf/config.json`.
 
 ```json
 {
+  "theme": "default",
   "homescreen_anchor": "top-right",
   "margin_top": 40,
   "margin_right": 24,
@@ -119,12 +122,95 @@ Quick Shelf stores its configuration in `~/.config/quick-shelf/config.json`.
 }
 ```
 
+- `theme`: Active color theme (`default`, `tokyonight`, `catppuccin`, `nord`, `dracula`, `gruvbox`, `everforest`, `rose-pine`, or the name of a custom CSS file in `~/.config/quick-shelf/themes/`).
 - `homescreen_anchor`: Screen corner anchor (`top-right`, `top-left`, `bottom-right`, `bottom-left`).
 - `margin_top`: Offset from top screen edge in pixels (recommended 40px to clear Waybar).
 - `margin_right`: Offset from right screen edge in pixels.
 - `width`: Widget width in pixels.
 - `default_view`: Default tab to show (`both`, `apps`, or `media`).
 - `layer`: Layer shell level (`bottom` sits behind normal windows on the desktop).
+
+## Theming and Styling
+
+Quick Shelf uses a Rofi-like theming approach. Colors are decoupled from layout styles through GTK CSS variables (`@define-color`). You can swap built-in themes, create your own palette file to match your dotfiles, or hook into dynamic wallpaper generators like Matugen, Pywal, or Wallust.
+
+### Built-in Themes
+
+Eight themes are included out of the box:
+
+- `default`: Warm berry dark mode
+- `tokyonight`: Classic Tokyo Night dark blue palette
+- `catppuccin`: Catppuccin Mocha style pastel accents
+- `nord`: Arctic North dark slate and frost blue
+- `dracula`: High contrast purple and pink vampire palette
+- `gruvbox`: Retro warm groove tones
+- `everforest`: Muted natural green forest aesthetic
+- `rose-pine`: Soft pine, rose, and iris palette
+
+List all themes available on your system:
+
+```bash
+quick-shelf --list-themes
+```
+
+Switch the theme on a running instance without restarting:
+
+```bash
+quick-shelf --theme tokyonight
+```
+
+### Custom Themes
+
+To make a theme that matches your Rofi or Waybar config, place a `.css` file inside `~/.config/quick-shelf/themes/`. For example, create `~/.config/quick-shelf/themes/mytheme.css`:
+
+```css
+/* Quick Shelf theme variables matching Rofi conventions */
+@define-color bg rgba(20, 20, 28, 0.94);
+@define-color bg-alt rgba(30, 30, 42, 0.75);
+@define-color fg #e0e2ea;
+@define-color fg-muted #8a90a4;
+@define-color selected #7289da;
+@define-color active #43b581;
+@define-color urgent #f04747;
+@define-color border-color rgba(70, 75, 95, 0.55);
+@define-color card-bg rgba(30, 30, 42, 0.65);
+@define-color card-hover rgba(70, 75, 95, 0.85);
+```
+
+Then select it via command line or config:
+
+```bash
+quick-shelf --theme mytheme
+```
+
+### Automatic Wallpaper Theming (Matugen, Pywal, Wallust)
+
+If you use an automated wallpaper color generator, configure it to write colors to `~/.config/quick-shelf/colors.css`. Whenever this file exists, Quick Shelf automatically imports its variable definitions on top of the active theme.
+
+Example template for Matugen or Pywal:
+
+```css
+@define-color bg {{colors.surface.default.hex}};
+@define-color bg-alt {{colors.surface_container.default.hex}};
+@define-color fg {{colors.on_surface.default.hex}};
+@define-color fg-muted {{colors.on_surface_variant.default.hex}};
+@define-color selected {{colors.primary.default.hex}};
+@define-color active {{colors.secondary.default.hex}};
+@define-color urgent {{colors.error.default.hex}};
+@define-color border-color {{colors.outline.default.hex}};
+@define-color card-bg {{colors.surface_container_low.default.hex}};
+@define-color card-hover {{colors.surface_container_high.default.hex}};
+```
+
+Trigger a style reload after updating colors:
+
+```bash
+quick-shelf --reload-style
+```
+
+### Custom Layout Overrides
+
+If you want to alter borders, paddings, fonts, or animations beyond color tokens, add custom CSS rules to `~/.config/quick-shelf/style.css`. Rules defined here load last and override default stylesheet properties.
 
 ## Building from Source
 

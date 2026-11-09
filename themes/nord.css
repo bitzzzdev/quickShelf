@@ -1,0 +1,11 @@
+/* Quick Shelf - Nord Theme */
+@define-color bg rgba(46, 52, 64, 0.94);
+@define-color bg-alt rgba(56, 62, 74, 0.75);
+@define-color fg #eceff4;
+@define-color fg-muted #d8dee9;
+@define-color selected #88c0d0;
+@define-color active #a3be8c;
+@define-color urgent #bf616a;
+@define-color border-color rgba(76, 86, 106, 0.55);
+@define-color card-bg rgba(56, 62, 74, 0.65);
+@define-color card-hover rgba(76, 86, 106, 0.85);

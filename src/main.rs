@@ -2,6 +2,7 @@ mod config;
 mod images;
 mod ipc;
 mod shortcuts;
+mod themes;
 mod ui;
 
 use images::ImageManager;
@@ -27,6 +28,8 @@ OPTIONS:
     --popup                   Show popup shelf window
     --hide                    Hide running popup shelf window
     --status                  Output Waybar-compatible JSON status
+    --theme <NAME>            Apply theme (switches live if running, or updates config)
+    --list-themes             List available built-in and user themes
     --reload-style            Reload CSS styling in running instance
     --add-shortcut <PATH>     Add an application .desktop file or executable
     --add-image <PATH>        Add an image to the shelf
@@ -91,6 +94,36 @@ fn main() {
                 println!("Reload style: {}", resp);
             } else {
                 println!("quick-shelf is not running.");
+            }
+            return;
+        }
+        "--list-themes" => {
+            let current = config::ShelfConfig::load().theme;
+            println!("Available themes:");
+            for t in themes::list_available_themes() {
+                if t == current {
+                    println!("* {} (active)", t);
+                } else {
+                    println!("  {}", t);
+                }
+            }
+            return;
+        }
+        "--theme" => {
+            if let Some(theme_name) = args.get(2) {
+                if let Ok(resp) = send_command(&format!("set-theme {}", theme_name)) {
+                    println!("Applied theme '{}' via IPC: {}", theme_name, resp);
+                } else {
+                    let mut cfg = config::ShelfConfig::load();
+                    cfg.theme = theme_name.clone();
+                    if let Err(e) = cfg.save() {
+                        eprintln!("Failed to save theme to config: {}", e);
+                    } else {
+                        println!("Theme set to '{}' in config.", theme_name);
+                    }
+                }
+            } else {
+                eprintln!("Error: Missing theme name. Usage: quick-shelf --theme <NAME>");
             }
             return;
         }
@@ -199,6 +232,9 @@ fn run_gui(is_homescreen: bool) {
                 }
                 IpcMessage::ReloadStyle => {
                     mw.reload_style();
+                }
+                IpcMessage::SetTheme(theme) => {
+                    mw.set_theme(&theme);
                 }
                 IpcMessage::Refresh => {
                     mw.refresh();

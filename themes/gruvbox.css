@@ -1,0 +1,11 @@
+/* Quick Shelf - Gruvbox Theme */
+@define-color bg rgba(40, 40, 40, 0.94);
+@define-color bg-alt rgba(53, 53, 53, 0.75);
+@define-color fg #ebdbb2;
+@define-color fg-muted #a89984;
+@define-color selected #d79921;
+@define-color active #b8bb26;
+@define-color urgent #fb4934;
+@define-color border-color rgba(102, 92, 84, 0.55);
+@define-color card-bg rgba(53, 53, 53, 0.65);
+@define-color card-hover rgba(80, 73, 69, 0.85);

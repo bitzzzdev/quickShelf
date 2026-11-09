@@ -14,6 +14,15 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Removed unused imports and dead code warnings across modules.
 
 ### Added
+- Added Rofi-like CSS theming system powered by `@define-color` GTK color definitions.
+- Added eight built-in themes: `default`, `tokyonight`, `catppuccin`, `nord`, `dracula`, `gruvbox`, `everforest`, and `rose-pine`.
+- Added support for custom theme stylesheets in `~/.config/quick-shelf/themes/<theme>.css`.
+- Added support for automated wallpaper colors via `~/.config/quick-shelf/colors.css` (Matugen, Pywal, Wallust compatible).
+- Added `--theme <NAME>` command line option to set the active theme and switch running instances.
+- Added `--list-themes` command line option to display available built-in and user-installed themes.
+- Added `set-theme <name>` command to Unix domain socket IPC for instant live switching.
+- Added `theme` configuration key in `~/.config/quick-shelf/config.json`.
+- Added sample theme stylesheets in `themes/` directory for dotfile sharing.
 - Added repository description and metadata in Cargo manifest.
 - Added unit tests for desktop entry parsing, exec argument sanitation, and image format detection.
 
