@@ -1,6 +1,5 @@
 use crate::config::{colors_file, style_file, themes_dir};
 use std::fs;
-use std::path::Path;
 
 pub const DEFAULT_PALETTE: &str = r#"
 @define-color bg rgba(22, 13, 17, 0.92);

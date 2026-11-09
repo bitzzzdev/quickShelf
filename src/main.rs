@@ -203,6 +203,7 @@ fn main() {
 }
 
 fn run_gui(is_homescreen: bool) {
+    glib::set_prgname(Some("quick-shelf"));
     if gtk::init().is_err() {
         eprintln!("Failed to initialize GTK.");
         std::process::exit(1);

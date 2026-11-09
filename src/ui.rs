@@ -45,7 +45,6 @@ impl MainWindow {
         let window = gtk::Window::new(gtk::WindowType::Toplevel);
         window.set_title("Quick Shelf");
         window.set_role("quick-shelf");
-        window.set_wmclass("quick-shelf", "quick-shelf");
         window.set_default_size(config.width, -1);
         window.set_resizable(!is_homescreen);
 
