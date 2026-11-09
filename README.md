@@ -55,7 +55,7 @@ Run Quick Shelf pinned to the desktop layer:
 quick-shelf --homescreen
 ```
 
-By default, it anchors to the top right of the desktop below Waybar. You can customize margins, width, and anchor in `~/.config/quick-shelf/config.json`.
+By default, it anchors to the top right of the desktop below Waybar. You can customize margins, width, and anchor in `~/.config/qshelf/config.json`.
 
 ### Toggle Popover Mode
 
@@ -66,6 +66,10 @@ quick-shelf --toggle
 ```
 
 If the widget is already open, `--toggle` hides it. If hidden or not running, it displays the shelf.
+
+Popup mode is a regular floating window with the `quick-shelf` Hyprland class.
+Use the compositor's normal `SUPER + left mouse` binding to move it and
+Hyprland window rules to control its placement.
 
 ### Waybar Status Output
 
@@ -93,7 +97,7 @@ OPTIONS:
     --popup                   Show popup shelf window
     --hide                    Hide running popup shelf window
     --status                  Output Waybar-compatible JSON status
-    --theme <NAME>            Apply a theme by name (built-in or from ~/.config/quick-shelf/themes/)
+    --theme <NAME>            Apply a theme by name (built-in or from ~/.config/qshelf/themes/)
     --list-themes             List all available built-in and user themes
     --reload-style            Reload CSS styling in running instance
     --add-shortcut <PATH>     Add an application .desktop file or executable
@@ -105,7 +109,8 @@ OPTIONS:
 
 ## Configuration
 
-Quick Shelf stores its configuration in `~/.config/quick-shelf/config.json`.
+Quick Shelf stores its configuration and CSS in `~/.config/qshelf/`. Shelf
+items remain in the XDG data directory at `~/.local/share/quick-shelf/`.
 
 ```json
 {
@@ -122,7 +127,7 @@ Quick Shelf stores its configuration in `~/.config/quick-shelf/config.json`.
 }
 ```
 
-- `theme`: Active color theme (`default`, `tokyonight`, `catppuccin`, `nord`, `dracula`, `gruvbox`, `everforest`, `rose-pine`, or the name of a custom CSS file in `~/.config/quick-shelf/themes/`).
+- `theme`: Active color theme (`default`, `tokyonight`, `catppuccin`, `nord`, `dracula`, `gruvbox`, `everforest`, `rose-pine`, or the name of a custom CSS file in `~/.config/qshelf/themes/`).
 - `homescreen_anchor`: Screen corner anchor (`top-right`, `top-left`, `bottom-right`, `bottom-left`).
 - `margin_top`: Offset from top screen edge in pixels (recommended 40px to clear Waybar).
 - `margin_right`: Offset from right screen edge in pixels.
@@ -161,7 +166,7 @@ quick-shelf --theme tokyonight
 
 ### Custom Themes
 
-To make a theme that matches your Rofi or Waybar config, place a `.css` file inside `~/.config/quick-shelf/themes/`. For example, create `~/.config/quick-shelf/themes/mytheme.css`:
+To make a theme that matches your Rofi or Waybar config, place a `.css` file inside `~/.config/qshelf/themes/`. For example, create `~/.config/qshelf/themes/mytheme.css`:
 
 ```css
 /* Quick Shelf theme variables matching Rofi conventions */
@@ -177,7 +182,7 @@ To make a theme that matches your Rofi or Waybar config, place a `.css` file ins
 @define-color card-hover rgba(70, 75, 95, 0.85);
 ```
 
-The built-in layout is loaded before `~/.config/quick-shelf/style.css`, so the
+The built-in layout is loaded before `~/.config/qshelf/style.css`, so the
 last file can override geometry and typography as well as colors:
 
 ```css
@@ -199,7 +204,7 @@ quick-shelf --theme mytheme
 
 ### Automatic Wallpaper Theming (Matugen, Pywal, Wallust)
 
-If you use an automated wallpaper color generator, configure it to write colors to `~/.config/quick-shelf/colors.css`. Whenever this file exists, Quick Shelf automatically imports its variable definitions on top of the active theme.
+If you use an automated wallpaper color generator, configure it to write colors to `~/.config/qshelf/colors.css`. Whenever this file exists, Quick Shelf automatically imports its variable definitions on top of the active theme.
 
 Example template for Matugen or Pywal:
 
@@ -224,7 +229,7 @@ quick-shelf --reload-style
 
 ### Custom Layout Overrides
 
-If you want to alter borders, paddings, fonts, or animations beyond color tokens, add custom CSS rules to `~/.config/quick-shelf/style.css`. Rules defined here load last and override default stylesheet properties.
+If you want to alter borders, paddings, fonts, or animations beyond color tokens, add custom CSS rules to `~/.config/qshelf/style.css`. Rules defined here load last and override default stylesheet properties.
 
 ## Building from Source
 

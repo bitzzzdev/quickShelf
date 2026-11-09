@@ -45,19 +45,16 @@ impl MainWindow {
         let window = gtk::Window::new(gtk::WindowType::Toplevel);
         window.set_title("Quick Shelf");
         window.set_role("quick-shelf");
+        window.set_wmclass("quick-shelf", "quick-shelf");
         window.set_default_size(config.width, -1);
-        window.set_resizable(false);
+        window.set_resizable(!is_homescreen);
 
-        if gtk_layer_shell::is_supported() {
+        if is_homescreen && gtk_layer_shell::is_supported() {
             window.init_layer_shell();
-            let layer = if is_homescreen {
-                if config.layer.to_lowercase() == "background" {
-                    gtk_layer_shell::Layer::Background
-                } else {
-                    gtk_layer_shell::Layer::Bottom
-                }
+            let layer = if config.layer.to_lowercase() == "background" {
+                gtk_layer_shell::Layer::Background
             } else {
-                gtk_layer_shell::Layer::Top
+                gtk_layer_shell::Layer::Bottom
             };
             window.set_layer(layer);
             window.set_keyboard_mode(gtk_layer_shell::KeyboardMode::OnDemand);
@@ -82,8 +79,11 @@ impl MainWindow {
                 window.set_layer_shell_margin(gtk_layer_shell::Edge::Left, config.margin_left);
             }
         } else {
+            // Popup mode must remain a normal compositor window so Hyprland
+            // can float, focus, resize, and move it with SUPER + mouse.
             window.set_type_hint(gdk::WindowTypeHint::Utility);
             window.set_skip_taskbar_hint(true);
+            window.set_decorated(false);
             if is_homescreen {
                 window.set_keep_below(true);
             } else {

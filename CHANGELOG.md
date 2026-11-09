@@ -16,17 +16,21 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 ### Added
 - Added Rofi-like CSS theming system powered by `@define-color` GTK color definitions.
 - Added eight built-in themes: `default`, `tokyonight`, `catppuccin`, `nord`, `dracula`, `gruvbox`, `everforest`, and `rose-pine`.
-- Added support for custom theme stylesheets in `~/.config/quick-shelf/themes/<theme>.css`.
-- Added support for automated wallpaper colors via `~/.config/quick-shelf/colors.css` (Matugen, Pywal, Wallust compatible).
+- Added support for custom theme stylesheets in `~/.config/qshelf/themes/<theme>.css`.
+- Added support for automated wallpaper colors via `~/.config/qshelf/colors.css` (Matugen, Pywal, Wallust compatible).
 - Added `--theme <NAME>` command line option to set the active theme and switch running instances.
 - Added `--list-themes` command line option to display available built-in and user-installed themes.
 - Added `set-theme <name>` command to Unix domain socket IPC for instant live switching.
-- Added `theme` configuration key in `~/.config/quick-shelf/config.json`.
+- Added `theme` configuration key in `~/.config/qshelf/config.json`.
+
+### Changed
+- Moved Quick Shelf configuration and theme files to `~/.config/qshelf/`.
+- Migrated existing files from `~/.config/quick-shelf/` when the new
+  configuration directory is first initialized.
+- Made popup mode a normal floating window so Hyprland rules and SUPER plus mouse movement apply.
 - Added sample theme stylesheets in `themes/` directory for dotfile sharing.
 - Added repository description and metadata in Cargo manifest.
 - Added unit tests for desktop entry parsing, exec argument sanitation, and image format detection.
-
-### Changed
 - Updated the default layout to use the square surfaces, flat controls, and accent border used by the bitzdots Rofi themes.
 
 ## [0.1.0] - 2026-11-08

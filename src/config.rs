@@ -39,9 +39,33 @@ impl Default for ShelfConfig {
 }
 
 pub fn config_dir() -> PathBuf {
-    let p = glib::user_config_dir().join("quick-shelf");
+    let p = glib::user_config_dir().join("qshelf");
     let _ = fs::create_dir_all(&p);
+    migrate_legacy_config(&p);
     p
+}
+
+fn migrate_legacy_config(target: &PathBuf) {
+    let legacy = glib::user_config_dir().join("quick-shelf");
+    if target.join("config.json").exists() || !legacy.is_dir() {
+        return;
+    }
+
+    if let Ok(entries) = fs::read_dir(&legacy) {
+        for entry in entries.flatten() {
+            let source = entry.path();
+            let destination = target.join(entry.file_name());
+            if source.is_file() {
+                if let Err(error) = fs::copy(&source, &destination) {
+                    eprintln!(
+                        "Failed to migrate Quick Shelf config {}: {}",
+                        source.display(),
+                        error
+                    );
+                }
+            }
+        }
+    }
 }
 
 pub fn data_dir() -> PathBuf {
