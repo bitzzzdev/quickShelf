@@ -3,3 +3,10 @@
 **/*.rs.bk
 *.log
 .DS_Store
+
+# Session and context exports
+*context*.md
+*session*.md
+*.session.md
+my-session.md
+.copilot/

@@ -142,7 +142,13 @@ and bracketed paste accepts paths from terminal file managers.
     "foreground": "#f8e4df",
     "muted": "#d4a8a2",
     "selected": "#35182c",
-    "card": "#261420"
+    "card": "#261420",
+    "layout": {
+      "width_percent": 92,
+      "height_percent": 82,
+      "section_order": ["apps", "images"],
+      "show_details": true
+    }
   }
 }
 ```
@@ -156,6 +162,12 @@ and bracketed paste accepts paths from terminal file managers.
 - `layer`: Layer shell level (`bottom` sits behind normal windows on the desktop).
 - `tui`: Terminal UI color tokens. Every value is a six-digit hex color and
   can be changed without rebuilding Quick Shelf.
+- `tui.layout`: Terminal panel geometry, copy, visibility, item order, and
+  detail rendering. These values let a dotfiles profile change the interface
+  without changing the shelf data or rebuilding the binary.
+
+See [docs/ricing.md](docs/ricing.md) for the complete configuration reference
+and copyable profiles.
 
 ## Theming and Styling
 
@@ -255,11 +267,13 @@ quick-shelf --reload-style
 
 ### Custom Layout Overrides
 
-The GTK stylesheet files remain available for compatibility with older
-profiles, but the active interface is terminal-based. Rice the active TUI by
-editing the `tui` color tokens in `config.json`. This keeps the shelf fully
-customizable without changing the binary or touching stored shortcuts and
-images.
+The active interface is terminal-based. Rice it by editing
+`~/.config/quick/shelf/config.json`, adding a profile stylesheet under
+`~/.config/quick/shelf/themes/`, or generating `colors.css` from your
+wallpaper tool. Layout changes apply the next time the TUI reloads.
+
+The old GTK source and CSS files remain in the repository only as migration
+history. They are not loaded by the TUI.
 
 ## Building from Source
 

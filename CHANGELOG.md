@@ -10,18 +10,11 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Added a mouse-enabled Ratatui terminal UI with keyboard navigation, click
   actions, right-click removal, drag-to-reorder, and bracketed-paste path
   drops.
+- Added a documented ricing schema for panel geometry, copy, visibility,
+  detail rendering, and application or image section order.
 - Added an isolated per-user configuration root at `~/.config/quick/shelf/`
   with migration from the previous `qshelf` and `quick-shelf` locations.
 - Added the `bitzdots` built-in profile and made it the default palette.
-
-### Fixed
-- Fixed GTK3 and gtk-layer-shell compilation failures in GitHub Actions CI runner.
-- Corrected enum variant casing to PascalCase for `Orientation`, `Align`, and `StackTransitionType`.
-- Replaced deprecated file chooser constructor with `FileChooserDialog::with_buttons` and owned `FileFilter`.
-- Integrated `LayerShell` trait methods for layer configuration, anchors, margins, and keyboard interactivity.
-- Removed unused imports and dead code warnings across modules.
-
-### Added
 - Added Rofi-like CSS theming system powered by `@define-color` GTK color definitions.
 - Added eight built-in themes: `default`, `tokyonight`, `catppuccin`, `nord`, `dracula`, `gruvbox`, `everforest`, and `rose-pine`.
 - Added support for custom theme stylesheets in
@@ -32,8 +25,15 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Added `--list-themes` command line option to display available built-in and user-installed themes.
 - Added `set-theme <name>` command to Unix domain socket IPC for instant live switching.
 - Added `theme` configuration key in `~/.config/quick/shelf/config.json`.
+- Added sample theme stylesheets in `themes/` directory for dotfile sharing.
+- Added repository description and metadata in Cargo manifest.
+- Added unit tests for desktop entry parsing, exec argument sanitation, and image format detection.
 
 ### Changed
+- Made mouse drag events update the reorder target before release, matching
+  terminal UI pointer behavior instead of treating every click as a drag.
+- Made section order configurable while keeping application and image data in
+  separate lists.
 - Changed the active shelf surface from a GTK popup/widget to a terminal UI
   launched in the user's terminal emulator.
 - Moved Quick Shelf configuration and theme files to
@@ -42,10 +42,16 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
   `~/.config/quick-shelf/` when the new configuration directory is first
   initialized.
 - Made popup mode a normal floating window so Hyprland rules and SUPER plus mouse movement apply.
-- Added sample theme stylesheets in `themes/` directory for dotfile sharing.
-- Added repository description and metadata in Cargo manifest.
-- Added unit tests for desktop entry parsing, exec argument sanitation, and image format detection.
 - Updated the default layout to use the square surfaces, flat controls, and accent border used by the bitzdots Rofi themes.
+
+### Fixed
+- Fixed generated bitzdots `rgb(...)` and `rgba(...)` palette values being
+  ignored by the terminal color parser.
+- Fixed GTK3 and gtk-layer-shell compilation failures in GitHub Actions CI runner.
+- Corrected enum variant casing to PascalCase for `Orientation`, `Align`, and `StackTransitionType`.
+- Replaced deprecated file chooser constructor with `FileChooserDialog::with_buttons` and owned `FileFilter`.
+- Integrated `LayerShell` trait methods for layer configuration, anchors, margins, and keyboard interactivity.
+- Removed unused imports and dead code warnings across modules.
 
 ## [0.1.0] - 2026-11-08
 
