@@ -62,6 +62,7 @@ struct TuiApp {
     receiver: Receiver<IpcMessage>,
     selected: usize,
     dragging: Option<usize>,
+    drag_target: Option<usize>,
     content_top: u16,
     visible: bool,
     message: String,
@@ -76,6 +77,7 @@ impl TuiApp {
             receiver,
             selected: 0,
             dragging: None,
+            drag_target: None,
             content_top: 0,
             visible: true,
             message: "Ready".to_string(),
@@ -132,13 +134,51 @@ impl TuiApp {
     }
 
     fn items(&self) -> Vec<ShelfItem> {
-        self.shortcuts
-            .list()
+        let apps = || {
+            self.shortcuts
+                .list()
+                .iter()
+                .cloned()
+                .map(ShelfItem::Shortcut)
+                .collect::<Vec<_>>()
+        };
+        let images = || {
+            self.images
+                .list()
+                .iter()
+                .cloned()
+                .map(ShelfItem::Image)
+                .collect::<Vec<_>>()
+        };
+        let mut items = Vec::new();
+        for section in &self.config.tui.layout.section_order {
+            match section.as_str() {
+                "apps" | "shortcuts" => items.extend(apps()),
+                "images" | "media" => items.extend(images()),
+                _ => {}
+            }
+        }
+        if !self
+            .config
+            .tui
+            .layout
+            .section_order
             .iter()
-            .cloned()
-            .map(ShelfItem::Shortcut)
-            .chain(self.images.list().iter().cloned().map(ShelfItem::Image))
-            .collect()
+            .any(|section| matches!(section.as_str(), "apps" | "shortcuts"))
+        {
+            items.extend(apps());
+        }
+        if !self
+            .config
+            .tui
+            .layout
+            .section_order
+            .iter()
+            .any(|section| matches!(section.as_str(), "images" | "media"))
+        {
+            items.extend(images());
+        }
+        items
     }
 
     fn handle_key(&mut self, code: KeyCode) -> bool {
@@ -219,11 +259,17 @@ impl TuiApp {
             MouseEventKind::Down(MouseButton::Left) => {
                 self.selected = index;
                 self.dragging = Some(index);
+                self.drag_target = Some(index);
+            }
+            MouseEventKind::Drag(MouseButton::Left) => {
+                self.selected = index;
+                self.drag_target = Some(index);
             }
             MouseEventKind::Up(MouseButton::Left) => {
                 if let Some(from) = self.dragging.take() {
-                    if from != index {
-                        self.reorder(from, index);
+                    let to = self.drag_target.take().unwrap_or(index);
+                    if from != to {
+                        self.reorder(from, to);
                     } else {
                         self.activate_selected();
                     }
@@ -241,18 +287,35 @@ impl TuiApp {
     }
 
     fn reorder(&mut self, from: usize, to: usize) {
-        let shortcut_count = self.shortcuts.count();
-        if from < shortcut_count && to < shortcut_count {
-            self.shortcuts.move_item(from, to);
-            self.selected = to;
-            self.message = "Reordered shortcut".into();
-        } else if from >= shortcut_count && to >= shortcut_count {
-            self.images.move_item(from - shortcut_count, to - shortcut_count);
-            self.selected = to;
-            self.message = "Reordered image".into();
-        } else {
+        let items = self.items();
+        let Some((from_is_app, from_position)) = self.item_position(&items, from) else {
+            return;
+        };
+        let Some((to_is_app, to_position)) = self.item_position(&items, to) else {
+            return;
+        };
+        if from_is_app != to_is_app {
             self.message = "Apps and images stay in separate shelves".into();
+            return;
         }
+        if from_is_app {
+            self.shortcuts.move_item(from_position, to_position);
+            self.message = "Reordered shortcut".into();
+        } else {
+            self.images.move_item(from_position, to_position);
+            self.message = "Reordered image".into();
+        }
+        self.selected = to;
+    }
+
+    fn item_position(&self, items: &[ShelfItem], index: usize) -> Option<(bool, usize)> {
+        let item = items.get(index)?;
+        let is_app = matches!(item, ShelfItem::Shortcut(_));
+        let position = items[..index]
+            .iter()
+            .filter(|item| matches!(item, ShelfItem::Shortcut(_)) == is_app)
+            .count();
+        Some((is_app, position))
     }
 
     fn item_at(&self, row: u16) -> Option<usize> {
@@ -268,43 +331,70 @@ impl TuiApp {
             return;
         }
 
-        let area = centered_rect(92, 82, frame.area());
+        let layout = &self.config.tui.layout;
+        let area = centered_rect(
+            layout.width_percent.clamp(30, 100),
+            layout.height_percent.clamp(30, 100),
+            frame.area(),
+        );
         let colors = Palette::from(&self.config.tui);
         let outer = Block::default()
             .title(Line::from(vec![
                 Span::styled(" 󱂬 ", Style::default().fg(colors.accent)),
-                Span::styled("QUICK SHELF ", Style::default().fg(colors.foreground).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    format!("{} ", layout.title),
+                    Style::default().fg(colors.foreground).add_modifier(Modifier::BOLD),
+                ),
                 Span::styled(
                     format!("{} items ", self.items().len()),
                     Style::default().fg(colors.muted),
                 ),
             ]))
-            .title_bottom(Line::from(vec![
-                Span::styled(" q ", Style::default().fg(colors.accent).add_modifier(Modifier::BOLD)),
-                Span::styled("quit  ", Style::default().fg(colors.muted)),
-                Span::styled("enter ", Style::default().fg(colors.accent).add_modifier(Modifier::BOLD)),
-                Span::styled("open  ", Style::default().fg(colors.muted)),
-                Span::styled("d ", Style::default().fg(colors.accent).add_modifier(Modifier::BOLD)),
-                Span::styled("delete  ", Style::default().fg(colors.muted)),
-                Span::styled("drop ", Style::default().fg(colors.accent).add_modifier(Modifier::BOLD)),
-                Span::styled("paste path", Style::default().fg(colors.muted)),
-            ]))
             .borders(Borders::ALL)
             .border_style(Style::default().fg(colors.accent))
             .style(Style::default().bg(colors.background).fg(colors.foreground));
+        let outer = if layout.show_footer {
+            outer.title_bottom(Line::from(Span::styled(
+                format!(" {} ", layout.footer_hint),
+                Style::default().fg(colors.muted),
+            )))
+        } else {
+            outer
+        };
         frame.render_widget(outer, area);
 
+        let header_height = if layout.show_header {
+            layout.header_height.max(1)
+        } else {
+            0
+        };
+        let footer_height = if layout.show_footer {
+            layout.footer_height.max(1)
+        } else {
+            0
+        };
         let chunks = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Length(3), Constraint::Min(4), Constraint::Length(2)])
+            .constraints([
+                Constraint::Length(header_height),
+                Constraint::Min(1),
+                Constraint::Length(footer_height),
+            ])
             .split(area);
-        self.content_top = chunks[1].y;
-        let search = Paragraph::new(Line::from(vec![
-            Span::styled("  / ", Style::default().fg(colors.accent)),
-            Span::styled("Shelf is keyboard-first, mouse-enabled, and drop-friendly", Style::default().fg(colors.muted)),
-        ]))
-        .block(Block::default().borders(Borders::BOTTOM).border_style(Style::default().fg(colors.card)));
-        frame.render_widget(search, chunks[0]);
+        let padding = layout.content_padding.min(chunks[1].height.saturating_sub(1));
+        self.content_top = chunks[1].y.saturating_add(padding);
+        if layout.show_header {
+            let search = Paragraph::new(Line::from(vec![
+                Span::styled("  / ", Style::default().fg(colors.accent)),
+                Span::styled(&layout.subtitle, Style::default().fg(colors.muted)),
+            ]))
+            .block(
+                Block::default()
+                    .borders(Borders::BOTTOM)
+                    .border_style(Style::default().fg(colors.card)),
+            );
+            frame.render_widget(search, chunks[0]);
+        }
 
         let items = self.items();
         let list = List::new(items.iter().enumerate().map(|(index, item)| {
@@ -323,20 +413,37 @@ impl TuiApp {
             } else {
                 Style::default().fg(colors.foreground)
             };
-            ListItem::new(Line::from(vec![
+            let mut line = vec![
                 Span::styled(format!(" {} ", icon), Style::default().fg(colors.accent)),
                 Span::styled(format!("{:<24}", name), style),
-                Span::styled(format!("  {}", detail), Style::default().fg(colors.muted)),
-            ]))
+            ];
+            if layout.show_details {
+                line.push(Span::styled(
+                    format!("  {:<width$}", detail, width = layout.detail_width as usize),
+                    Style::default().fg(colors.muted),
+                ));
+            }
+            ListItem::new(Line::from(line))
         }))
         .block(Block::default().borders(Borders::LEFT | Borders::RIGHT).border_style(Style::default().fg(colors.card)));
-        frame.render_widget(list, chunks[1]);
+        let list_area = Rect {
+            x: chunks[1].x.saturating_add(padding),
+            y: self.content_top,
+            width: chunks[1].width.saturating_sub(padding.saturating_mul(2)),
+            height: chunks[1].height.saturating_sub(padding.saturating_mul(2)),
+        };
+        frame.render_widget(list, list_area);
 
-        let footer = Paragraph::new(Text::from(vec![
-            Line::from(Span::styled(format!(" {}", self.message), Style::default().fg(colors.muted))),
-        ]))
-        .wrap(Wrap { trim: true });
-        frame.render_widget(footer, chunks[2]);
+        if layout.show_footer {
+            let footer = Paragraph::new(Text::from(vec![
+                Line::from(Span::styled(
+                    format!(" {}", self.message),
+                    Style::default().fg(colors.muted),
+                )),
+            ]))
+            .wrap(Wrap { trim: true });
+            frame.render_widget(footer, chunks[2]);
+        }
     }
 }
 
@@ -363,13 +470,32 @@ impl From<&TuiStyle> for Palette {
 }
 
 fn parse_color(value: &str) -> Color {
+    let value = value.trim();
     let value = value.trim_start_matches('#');
-    if value.len() == 6 {
+    let hex = value.get(..6).filter(|_| value.len() == 6 || value.len() == 8);
+    if let Some(value) = hex {
         let red = u8::from_str_radix(&value[0..2], 16);
         let green = u8::from_str_radix(&value[2..4], 16);
         let blue = u8::from_str_radix(&value[4..6], 16);
         if let (Ok(red), Ok(green), Ok(blue)) = (red, green, blue) {
             return Color::Rgb(red, green, blue);
+        }
+    }
+    let function = value
+        .strip_prefix("rgba(")
+        .or_else(|| value.strip_prefix("rgb("))
+        .and_then(|value| value.strip_suffix(')'));
+    if let Some(value) = function {
+        let channels = value
+            .split(',')
+            .take(3)
+            .map(str::trim)
+            .map(str::parse::<u8>)
+            .collect::<Result<Vec<_>, _>>();
+        if let Ok(channels) = channels {
+            if channels.len() == 3 {
+                return Color::Rgb(channels[0], channels[1], channels[2]);
+            }
         }
     }
     Color::Reset

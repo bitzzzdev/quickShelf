@@ -33,6 +33,38 @@ pub struct TuiStyle {
     pub selected: String,
     #[serde(default = "default_card")]
     pub card: String,
+    #[serde(default)]
+    pub layout: TuiLayout,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TuiLayout {
+    #[serde(default = "default_width_percent")]
+    pub width_percent: u16,
+    #[serde(default = "default_height_percent")]
+    pub height_percent: u16,
+    #[serde(default = "default_header_height")]
+    pub header_height: u16,
+    #[serde(default = "default_footer_height")]
+    pub footer_height: u16,
+    #[serde(default = "default_content_padding")]
+    pub content_padding: u16,
+    #[serde(default = "default_detail_width")]
+    pub detail_width: u16,
+    #[serde(default = "default_title")]
+    pub title: String,
+    #[serde(default = "default_subtitle")]
+    pub subtitle: String,
+    #[serde(default = "default_footer_hint")]
+    pub footer_hint: String,
+    #[serde(default = "default_section_order")]
+    pub section_order: Vec<String>,
+    #[serde(default = "default_show_header")]
+    pub show_header: bool,
+    #[serde(default = "default_show_footer")]
+    pub show_footer: bool,
+    #[serde(default = "default_show_details")]
+    pub show_details: bool,
 }
 
 fn default_accent() -> String { "#d46478".to_string() }
@@ -41,6 +73,25 @@ fn default_foreground() -> String { "#f8e4df".to_string() }
 fn default_muted() -> String { "#d4a8a2".to_string() }
 fn default_selected() -> String { "#35182c".to_string() }
 fn default_card() -> String { "#261420".to_string() }
+fn default_width_percent() -> u16 { 92 }
+fn default_height_percent() -> u16 { 82 }
+fn default_header_height() -> u16 { 3 }
+fn default_footer_height() -> u16 { 2 }
+fn default_content_padding() -> u16 { 1 }
+fn default_detail_width() -> u16 { 42 }
+fn default_title() -> String { "QUICK SHELF".to_string() }
+fn default_subtitle() -> String {
+    "Keyboard-first, mouse-enabled, and drop-friendly".to_string()
+}
+fn default_footer_hint() -> String {
+    "q quit   enter open   d delete   drag reorder   paste path".to_string()
+}
+fn default_section_order() -> Vec<String> {
+    vec!["apps".to_string(), "images".to_string()]
+}
+fn default_show_header() -> bool { true }
+fn default_show_footer() -> bool { true }
+fn default_show_details() -> bool { true }
 
 impl Default for TuiStyle {
     fn default() -> Self {
@@ -51,6 +102,27 @@ impl Default for TuiStyle {
             muted: default_muted(),
             selected: default_selected(),
             card: default_card(),
+            layout: TuiLayout::default(),
+        }
+    }
+}
+
+impl Default for TuiLayout {
+    fn default() -> Self {
+        Self {
+            width_percent: default_width_percent(),
+            height_percent: default_height_percent(),
+            header_height: default_header_height(),
+            footer_height: default_footer_height(),
+            content_padding: default_content_padding(),
+            detail_width: default_detail_width(),
+            title: default_title(),
+            subtitle: default_subtitle(),
+            footer_hint: default_footer_hint(),
+            section_order: default_section_order(),
+            show_header: default_show_header(),
+            show_footer: default_show_footer(),
+            show_details: default_show_details(),
         }
     }
 }
