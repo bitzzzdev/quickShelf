@@ -216,6 +216,72 @@ impl ShortcutManager {
         apps.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
         apps
     }
+
+    pub fn find_icon_path(icon_name: &str) -> Option<PathBuf> {
+        if icon_name.is_empty() {
+            return None;
+        }
+        let direct = Path::new(icon_name);
+        if direct.is_absolute() && direct.exists() {
+            return Some(direct.to_path_buf());
+        }
+
+        let mut search_dirs = vec![
+            PathBuf::from("/usr/share/pixmaps"),
+            PathBuf::from("/usr/share/icons/hicolor/scalable/apps"),
+            PathBuf::from("/usr/share/icons/hicolor/48x48/apps"),
+            PathBuf::from("/usr/share/icons/hicolor/64x64/apps"),
+            PathBuf::from("/usr/share/icons/hicolor/128x128/apps"),
+            PathBuf::from("/usr/share/icons/hicolor/32x32/apps"),
+        ];
+        if let Ok(data_dir) = std::env::var("XDG_DATA_HOME") {
+            search_dirs.push(PathBuf::from(data_dir).join("icons/hicolor/scalable/apps"));
+            search_dirs.push(PathBuf::from(data_dir).join("icons/hicolor/48x48/apps"));
+        } else if let Ok(home) = std::env::var("HOME") {
+            search_dirs.push(PathBuf::from(home).join(".local/share/icons/hicolor/scalable/apps"));
+            search_dirs.push(PathBuf::from(home).join(".local/share/icons/hicolor/48x48/apps"));
+        }
+
+        let extensions = ["png", "svg", "xpm", "ico"];
+        for dir in search_dirs {
+            for ext in extensions {
+                let candidate = dir.join(format!("{}.{}", icon_name, ext));
+                if candidate.exists() {
+                    return Some(candidate);
+                }
+            }
+            let exact = dir.join(icon_name);
+            if exact.exists() {
+                return Some(exact);
+            }
+        }
+        None
+    }
+
+    pub fn nerd_font_icon(icon_name: &str, exec: &str) -> &'static str {
+        let combined = format!("{}:{}", icon_name, exec).to_lowercase();
+        if combined.contains("term") || combined.contains("kitty") || combined.contains("alacritty") || combined.contains("foot") {
+            "󰆍"
+        } else if combined.contains("code") || combined.contains("nvim") || combined.contains("vim") || combined.contains("edit") {
+            "󰨞"
+        } else if combined.contains("browser") || combined.contains("firefox") || combined.contains("brave") || combined.contains("chrome") {
+            "󰖟"
+        } else if combined.contains("file") || combined.contains("nautilus") || combined.contains("thunar") || combined.contains("dolphin") {
+            "󰉋"
+        } else if combined.contains("music") || combined.contains("spotify") || combined.contains("audio") {
+            "󰓇"
+        } else if combined.contains("video") || combined.contains("vlc") || combined.contains("mpv") || combined.contains("player") {
+            "󰕼"
+        } else if combined.contains("discord") || combined.contains("slack") || combined.contains("chat") || combined.contains("telegram") {
+            "󰙯"
+        } else if combined.contains("image") || combined.contains("gimp") || combined.contains("photo") {
+            "󰋩"
+        } else if combined.contains("setting") || combined.contains("control") {
+            "󰒓"
+        } else {
+            "󰣆"
+        }
+    }
 }
 
 fn clean_exec(raw: &str) -> String {

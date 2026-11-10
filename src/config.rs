@@ -65,6 +65,10 @@ pub struct TuiLayout {
     pub show_footer: bool,
     #[serde(default = "default_show_details")]
     pub show_details: bool,
+    #[serde(default = "default_aspect_ratio")]
+    pub aspect_ratio: String,
+    #[serde(default = "default_view_mode")]
+    pub view_mode: String,
 }
 
 fn default_accent() -> String { "#d46478".to_string() }
@@ -74,7 +78,7 @@ fn default_muted() -> String { "#d4a8a2".to_string() }
 fn default_selected() -> String { "#35182c".to_string() }
 fn default_card() -> String { "#261420".to_string() }
 fn default_width_percent() -> u16 { 92 }
-fn default_height_percent() -> u16 { 82 }
+fn default_height_percent() -> u16 { 92 }
 fn default_header_height() -> u16 { 3 }
 fn default_footer_height() -> u16 { 2 }
 fn default_content_padding() -> u16 { 1 }
@@ -84,7 +88,7 @@ fn default_subtitle() -> String {
     "Keyboard-first, mouse-enabled, and drop-friendly".to_string()
 }
 fn default_footer_hint() -> String {
-    "q quit   enter open   d delete   drag reorder   paste path".to_string()
+    "q quit  enter open  a add app  x drag out  v view  d del  drag reorder".to_string()
 }
 fn default_section_order() -> Vec<String> {
     vec!["apps".to_string(), "images".to_string()]
@@ -92,6 +96,8 @@ fn default_section_order() -> Vec<String> {
 fn default_show_header() -> bool { true }
 fn default_show_footer() -> bool { true }
 fn default_show_details() -> bool { true }
+fn default_aspect_ratio() -> String { "1:1".to_string() }
+fn default_view_mode() -> String { "bento".to_string() }
 
 impl Default for TuiStyle {
     fn default() -> Self {
@@ -123,6 +129,8 @@ impl Default for TuiLayout {
             show_header: default_show_header(),
             show_footer: default_show_footer(),
             show_details: default_show_details(),
+            aspect_ratio: default_aspect_ratio(),
+            view_mode: default_view_mode(),
         }
     }
 }
@@ -139,8 +147,8 @@ impl Default for ShelfConfig {
             margin_right: 24,
             margin_bottom: 24,
             margin_left: 24,
-            width: 380,
-            max_height: 620,
+            width: 580,
+            max_height: 580,
             default_view: "both".to_string(),
             layer: "bottom".to_string(),
             theme: default_theme(),

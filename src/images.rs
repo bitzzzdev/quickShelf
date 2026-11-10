@@ -158,6 +158,94 @@ impl ImageManager {
     pub fn open_image(path: &Path) {
         let _ = open::that(path);
     }
+
+    pub fn start_external_drag(path: &Path, is_image: bool) -> String {
+        let abs_path = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+        let uri = format!("file://{}", abs_path.to_string_lossy());
+
+        let _ = Command::new("wl-copy")
+            .arg("--type")
+            .arg("text/uri-list")
+            .arg(&uri)
+            .spawn();
+
+        if is_image {
+            Self::copy_image_to_clipboard(&abs_path);
+        }
+
+        let drag_tools = ["ripdrag", "dragon", "dragon-drop"];
+        for tool in drag_tools {
+            if let Ok(path_var) = std::env::var("PATH") {
+                for dir in path_var.split(':') {
+                    let bin = Path::new(dir).join(tool);
+                    if bin.is_file() {
+                        let _ = Command::new(tool)
+                            .arg("-x")
+                            .arg("-A")
+                            .arg(&abs_path)
+                            .spawn();
+                        return format!("Dragging via {} (or paste with Ctrl+V)", tool);
+                    }
+                }
+            }
+        }
+
+        "Copied to clipboard (Ctrl+V into any app, install ripdrag for direct drag)".to_string()
+    }
+
+    pub fn generate_halfblock_thumbnail(
+        path: &Path,
+        cols: u16,
+        rows: u16,
+    ) -> Vec<Vec<(char, ratatui::style::Color, ratatui::style::Color)>> {
+        let px_w = cols as i32;
+        let px_h = (rows * 2) as i32;
+        let Ok(pixbuf) = Pixbuf::from_file_at_scale(path, px_w, px_h, false) else {
+            return Vec::new();
+        };
+        let w = pixbuf.width() as usize;
+        let h = pixbuf.height() as usize;
+        let rowstride = pixbuf.rowstride() as usize;
+        let n_channels = pixbuf.n_channels() as usize;
+        let bytes = pixbuf.read_pixel_bytes();
+        let data: &[u8] = bytes.as_ref();
+
+        let mut result = Vec::with_capacity(rows as usize);
+        for row in 0..rows as usize {
+            let mut line = Vec::with_capacity(cols as usize);
+            let y_top = row * 2;
+            let y_bot = y_top + 1;
+            for col in 0..cols as usize {
+                let (r_t, g_t, b_t) = if col < w && y_top < h {
+                    let offset = y_top * rowstride + col * n_channels;
+                    if offset + 2 < data.len() {
+                        (data[offset], data[offset + 1], data[offset + 2])
+                    } else {
+                        (0, 0, 0)
+                    }
+                } else {
+                    (0, 0, 0)
+                };
+                let (r_b, g_b, b_b) = if col < w && y_bot < h {
+                    let offset = y_bot * rowstride + col * n_channels;
+                    if offset + 2 < data.len() {
+                        (data[offset], data[offset + 1], data[offset + 2])
+                    } else {
+                        (0, 0, 0)
+                    }
+                } else {
+                    (0, 0, 0)
+                };
+                line.push((
+                    '▀',
+                    ratatui::style::Color::Rgb(r_t, g_t, b_t),
+                    ratatui::style::Color::Rgb(r_b, g_b, b_b),
+                ));
+            }
+            result.push(line);
+        }
+        result
+    }
 }
 
 fn sanitize_filename(name: &str) -> String {
