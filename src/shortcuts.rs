@@ -235,11 +235,11 @@ impl ShortcutManager {
             PathBuf::from("/usr/share/icons/hicolor/32x32/apps"),
         ];
         if let Ok(data_dir) = std::env::var("XDG_DATA_HOME") {
-            search_dirs.push(PathBuf::from(data_dir).join("icons/hicolor/scalable/apps"));
-            search_dirs.push(PathBuf::from(data_dir).join("icons/hicolor/48x48/apps"));
+            search_dirs.push(PathBuf::from(&data_dir).join("icons/hicolor/scalable/apps"));
+            search_dirs.push(PathBuf::from(&data_dir).join("icons/hicolor/48x48/apps"));
         } else if let Ok(home) = std::env::var("HOME") {
-            search_dirs.push(PathBuf::from(home).join(".local/share/icons/hicolor/scalable/apps"));
-            search_dirs.push(PathBuf::from(home).join(".local/share/icons/hicolor/48x48/apps"));
+            search_dirs.push(PathBuf::from(&home).join(".local/share/icons/hicolor/scalable/apps"));
+            search_dirs.push(PathBuf::from(&home).join(".local/share/icons/hicolor/48x48/apps"));
         }
 
         let extensions = ["png", "svg", "xpm", "ico"];

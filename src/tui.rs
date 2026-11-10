@@ -503,8 +503,8 @@ impl TuiApp {
             return;
         }
 
-        let layout = &self.config.tui.layout;
-        let area = compute_shelf_rect(layout, frame.area());
+        let layout = self.config.tui.layout.clone();
+        let area = compute_shelf_rect(&layout, frame.area());
         let colors = Palette::from(&self.config.tui);
 
         let view_badge = if layout.view_mode == "bento" {
