@@ -69,6 +69,16 @@ impl ShortcutManager {
         removed
     }
 
+    pub fn move_item(&mut self, from: usize, to: usize) -> bool {
+        if from >= self.shortcuts.len() || to >= self.shortcuts.len() || from == to {
+            return false;
+        }
+        let item = self.shortcuts.remove(from);
+        self.shortcuts.insert(to, item);
+        let _ = self.save();
+        true
+    }
+
     #[allow(dead_code)]
     pub fn launch(&self, id: &str) -> Result<(), std::io::Error> {
         if let Some(s) = self.shortcuts.iter().find(|s| s.id == id) {

@@ -3,21 +3,20 @@ mod images;
 mod ipc;
 mod shortcuts;
 mod themes;
-mod ui;
+mod tui;
 
 use images::ImageManager;
-use ipc::{IpcMessage, send_command, start_server};
+use ipc::send_command;
 use shortcuts::ShortcutManager;
 use std::env;
 use std::path::Path;
-use std::sync::mpsc::channel;
-use std::time::Duration;
-use ui::MainWindow;
+use std::process::Command;
+use tui::run_tui;
 
 fn print_help() {
     println!(
         r#"quick-shelf v{}
-Lightweight desktop shelf widget & Waybar module for app shortcuts and image drop previews
+Mouse-enabled terminal shelf for app shortcuts and image drop previews
 
 USAGE:
     quick-shelf [OPTIONS]
@@ -26,6 +25,7 @@ OPTIONS:
     --homescreen, --desktop   Run as persistent homescreen widget on desktop background
     --toggle                  Toggle popup shelf visibility (or launch popup if not running)
     --popup                   Show popup shelf window
+    --tui                     Run the mouse-enabled terminal shelf directly
     --hide                    Hide running popup shelf window
     --status                  Output Waybar-compatible JSON status
     --theme <NAME>            Apply theme (switches live if running, or updates config)
@@ -38,6 +38,42 @@ OPTIONS:
     --help, -h                Print this help message
 "#,
         env!("CARGO_PKG_VERSION")
+    );
+}
+fn launch_tui_terminal() {
+    let executable = env::current_exe().unwrap_or_else(|_| Path::new("quick-shelf").to_path_buf());
+    let terminal = env::var("QUICK_SHELF_TERMINAL").ok();
+    let candidates = terminal
+        .as_deref()
+        .map(|value| vec![value.to_string()])
+        .unwrap_or_else(|| {
+            ["foot", "kitty", "alacritty", "wezterm"]
+                .iter()
+                .map(|value| value.to_string())
+                .collect()
+        });
+
+    for candidate in candidates {
+        let mut parts = candidate.split_whitespace();
+        let Some(program) = parts.next() else { continue };
+        let mut command = Command::new(program);
+        command.args(parts);
+        if program == "foot" {
+            command.args(["--app-id", "quick-shelf"]);
+        } else if program == "kitty" {
+            command.args(["--class", "quick-shelf"]);
+        } else if program == "alacritty" {
+            command.args(["--class", "quick-shelf", "-e"]);
+        } else if program == "wezterm" {
+            command.args(["start", "--class", "quick-shelf", "--"]);
+        }
+        if command.arg(&executable).arg("--tui").spawn().is_ok() {
+            return;
+        }
+    }
+
+    eprintln!(
+        "No supported terminal found. Run `quick-shelf --tui` directly or set QUICK_SHELF_TERMINAL."
     );
 }
 
@@ -180,8 +216,7 @@ fn main() {
                     return;
                 }
             }
-            // Not running: launch popup GUI
-            run_gui(false);
+            launch_tui_terminal();
         }
         "--popup" => {
             if let Ok(resp) = send_command("show") {
@@ -189,10 +224,19 @@ fn main() {
                     return;
                 }
             }
-            run_gui(false);
+            launch_tui_terminal();
+        }
+        "--tui" => {
+            if let Err(error) = run_tui() {
+                eprintln!("Quick Shelf TUI failed: {}", error);
+                std::process::exit(1);
+            }
         }
         "--homescreen" | "--desktop" => {
-            run_gui(true);
+            if let Err(error) = run_tui() {
+                eprintln!("Quick Shelf TUI failed: {}", error);
+                std::process::exit(1);
+            }
         }
         other => {
             eprintln!("Unknown option: {}", other);
@@ -200,63 +244,4 @@ fn main() {
             std::process::exit(1);
         }
     }
-}
-
-fn run_gui(is_homescreen: bool) {
-    glib::set_prgname(Some("quick-shelf"));
-    if gtk::init().is_err() {
-        eprintln!("Failed to initialize GTK.");
-        std::process::exit(1);
-    }
-
-    let (sender, receiver) = channel::<IpcMessage>();
-    if let Err(e) = start_server(sender) {
-        eprintln!("Warning: Failed to start IPC server: {}", e);
-    }
-
-    let main_window = MainWindow::new(is_homescreen);
-    main_window.show();
-
-    // Poll IPC messages in GTK main thread
-    let mw = main_window.clone();
-    glib::timeout_add_local(Duration::from_millis(50), move || {
-        while let Ok(msg) = receiver.try_recv() {
-            match msg {
-                IpcMessage::Toggle => {
-                    mw.toggle_visibility();
-                }
-                IpcMessage::Show => {
-                    mw.show();
-                }
-                IpcMessage::Hide => {
-                    mw.hide();
-                }
-                IpcMessage::ReloadStyle => {
-                    mw.reload_style();
-                }
-                IpcMessage::SetTheme(theme) => {
-                    mw.set_theme(&theme);
-                }
-                IpcMessage::Refresh => {
-                    mw.refresh();
-                }
-                IpcMessage::AddImage(path) => {
-                    let mut mgr = ImageManager::load();
-                    let _ = mgr.add_from_path(Path::new(&path));
-                    mw.refresh();
-                }
-                IpcMessage::AddShortcut(path) => {
-                    let p = Path::new(&path);
-                    if let Some(sc) = ShortcutManager::from_desktop_file(p) {
-                        let mut mgr = ShortcutManager::load();
-                        mgr.add(sc);
-                        mw.refresh();
-                    }
-                }
-            }
-        }
-        glib::ControlFlow::Continue
-    });
-
-    gtk::main();
 }

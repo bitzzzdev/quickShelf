@@ -15,10 +15,48 @@ pub struct ShelfConfig {
     pub layer: String,
     #[serde(default = "default_theme")]
     pub theme: String,
+    #[serde(default)]
+    pub tui: TuiStyle,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TuiStyle {
+    #[serde(default = "default_accent")]
+    pub accent: String,
+    #[serde(default = "default_background")]
+    pub background: String,
+    #[serde(default = "default_foreground")]
+    pub foreground: String,
+    #[serde(default = "default_muted")]
+    pub muted: String,
+    #[serde(default = "default_selected")]
+    pub selected: String,
+    #[serde(default = "default_card")]
+    pub card: String,
+}
+
+fn default_accent() -> String { "#d46478".to_string() }
+fn default_background() -> String { "#160d11".to_string() }
+fn default_foreground() -> String { "#f8e4df".to_string() }
+fn default_muted() -> String { "#d4a8a2".to_string() }
+fn default_selected() -> String { "#35182c".to_string() }
+fn default_card() -> String { "#261420".to_string() }
+
+impl Default for TuiStyle {
+    fn default() -> Self {
+        Self {
+            accent: default_accent(),
+            background: default_background(),
+            foreground: default_foreground(),
+            muted: default_muted(),
+            selected: default_selected(),
+            card: default_card(),
+        }
+    }
 }
 
 fn default_theme() -> String {
-    "default".to_string()
+    "bitzdots".to_string()
 }
 
 impl Default for ShelfConfig {
@@ -34,36 +72,47 @@ impl Default for ShelfConfig {
             default_view: "both".to_string(),
             layer: "bottom".to_string(),
             theme: default_theme(),
+            tui: TuiStyle::default(),
         }
     }
 }
 
 pub fn config_dir() -> PathBuf {
-    let p = glib::user_config_dir().join("qshelf");
+    let p = glib::user_config_dir().join("quick").join("shelf");
     let _ = fs::create_dir_all(&p);
     migrate_legacy_config(&p);
     p
 }
 
 fn migrate_legacy_config(target: &PathBuf) {
-    let legacy = glib::user_config_dir().join("quick-shelf");
-    if target.join("config.json").exists() || !legacy.is_dir() {
+    if target.join("config.json").exists() {
         return;
     }
 
-    if let Ok(entries) = fs::read_dir(&legacy) {
-        for entry in entries.flatten() {
-            let source = entry.path();
-            let destination = target.join(entry.file_name());
-            if source.is_file() {
-                if let Err(error) = fs::copy(&source, &destination) {
-                    eprintln!(
-                        "Failed to migrate Quick Shelf config {}: {}",
-                        source.display(),
-                        error
-                    );
+    let config_root = glib::user_config_dir();
+    for legacy in [config_root.join("qshelf"), config_root.join("quick-shelf")] {
+        if !legacy.is_dir() {
+            continue;
+        }
+
+        if let Ok(entries) = fs::read_dir(&legacy) {
+            for entry in entries.flatten() {
+                let source = entry.path();
+                let destination = target.join(entry.file_name());
+                if source.is_file() && !destination.exists() {
+                    if let Err(error) = fs::copy(&source, &destination) {
+                        eprintln!(
+                            "Failed to migrate Quick Shelf config {}: {}",
+                            source.display(),
+                            error
+                        );
+                    }
                 }
             }
+        }
+
+        if target.join("config.json").exists() {
+            break;
         }
     }
 }
@@ -121,13 +170,41 @@ impl ShelfConfig {
         if path.exists() {
             if let Ok(content) = fs::read_to_string(&path) {
                 if let Ok(cfg) = serde_json::from_str::<ShelfConfig>(&content) {
-                    return cfg;
+                    return cfg.with_generated_palette();
                 }
             }
         }
         let cfg = ShelfConfig::default();
         let _ = cfg.save();
-        cfg
+        cfg.with_generated_palette()
+    }
+
+    fn with_generated_palette(mut self) -> Self {
+        let palette_path = colors_file();
+        let Ok(content) = fs::read_to_string(palette_path) else {
+            return self;
+        };
+
+        for line in content.lines() {
+            let Some((name, value)) = line
+                .trim()
+                .strip_prefix("@define-color ")
+                .and_then(|line| line.split_once(' '))
+            else {
+                continue;
+            };
+            let value = value.trim().trim_end_matches(';');
+            match name {
+                "bg" => self.tui.background = value.to_string(),
+                "fg" => self.tui.foreground = value.to_string(),
+                "fg-muted" => self.tui.muted = value.to_string(),
+                "selected" => self.tui.selected = value.to_string(),
+                "border-color" => self.tui.accent = value.to_string(),
+                "card-bg" => self.tui.card = value.to_string(),
+                _ => {}
+            }
+        }
+        self
     }
 
     pub fn save(&self) -> Result<(), Box<dyn std::error::Error>> {

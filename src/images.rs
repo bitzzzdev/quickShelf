@@ -124,6 +124,16 @@ impl ImageManager {
         false
     }
 
+    pub fn move_item(&mut self, from: usize, to: usize) -> bool {
+        if from >= self.images.len() || to >= self.images.len() || from == to {
+            return false;
+        }
+        let item = self.images.remove(from);
+        self.images.insert(to, item);
+        let _ = self.save();
+        true
+    }
+
     pub fn clear_all(&mut self) {
         for img in &self.images {
             let _ = fs::remove_file(&img.path);
@@ -133,10 +143,6 @@ impl ImageManager {
     }
 
     pub fn copy_image_to_clipboard(path: &Path) {
-        if let Ok(pixbuf) = Pixbuf::from_file(path) {
-            let clipboard = gtk::Clipboard::get(&gdk::SELECTION_CLIPBOARD);
-            clipboard.set_image(&pixbuf);
-        }
         let _ = Command::new("wl-copy")
             .arg("--type")
             .arg("image/png")
@@ -146,8 +152,6 @@ impl ImageManager {
 
     pub fn copy_path_to_clipboard(path: &Path) {
         let p_str = path.to_string_lossy().to_string();
-        let clipboard = gtk::Clipboard::get(&gdk::SELECTION_CLIPBOARD);
-        clipboard.set_text(&p_str);
         let _ = Command::new("wl-copy").arg(&p_str).spawn();
     }
 

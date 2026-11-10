@@ -2,19 +2,16 @@
 name = "quick-shelf"
 version = "0.1.0"
 edition = "2021"
-description = "Desktop shelf widget and Waybar popover for application shortcuts and image drop previews"
+description = "Mouse-enabled terminal shelf for application shortcuts and image drop previews"
 authors = ["bitzzdev"]
 license = "MIT"
 repository = "https://github.com/bitzzdev/quickShelf"
 
 [dependencies]
-gtk = { version = "0.18", features = ["v3_24"] }
-gdk = "0.18"
 glib = "0.18"
-gio = "0.18"
-pango = "0.18"
 gdk-pixbuf = "0.18"
-gtk-layer-shell = { version = "0.8", features = ["v0_6"] }
+ratatui = "0.29"
+crossterm = { version = "0.28", features = ["bracketed-paste"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 open = "5.3"

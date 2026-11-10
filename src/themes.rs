@@ -1,7 +1,7 @@
 use crate::config::{colors_file, style_file, themes_dir};
 use std::fs;
 
-pub const DEFAULT_PALETTE: &str = r#"
+pub const BITZDOTS_PALETTE: &str = r#"
 @define-color bg rgba(22, 13, 17, 0.92);
 @define-color bg-alt rgba(38, 20, 32, 0.6);
 @define-color fg #f8e4df;
@@ -13,6 +13,8 @@ pub const DEFAULT_PALETTE: &str = r#"
 @define-color card-bg rgba(38, 20, 32, 0.6);
 @define-color card-hover rgba(53, 24, 44, 0.85);
 "#;
+
+pub const DEFAULT_PALETTE: &str = BITZDOTS_PALETTE;
 
 pub const TOKYONIGHT_PALETTE: &str = r#"
 @define-color bg rgba(21, 22, 30, 0.94);
@@ -111,6 +113,7 @@ pub const BASE_RULES_CSS: &str = r#"
     border: 2px solid @selected;
     border-radius: 0;
     padding: 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
 }
 
 .qs-header {
@@ -150,6 +153,13 @@ pub const BASE_RULES_CSS: &str = r#"
 .qs-btn:hover {
     background: @selected;
     color: @bg;
+}
+
+.qs-btn:focus,
+.qs-app-card:focus,
+.qs-image-card:focus {
+    border-color: @selected;
+    box-shadow: 0 0 0 1px @selected;
 }
 
 .qs-section-title {
@@ -219,7 +229,7 @@ pub const BASE_RULES_CSS: &str = r#"
 
 pub fn builtin_theme_palette(name: &str) -> Option<&'static str> {
     match name.to_lowercase().as_str() {
-        "default" => Some(DEFAULT_PALETTE),
+        "default" | "bitzdots" => Some(BITZDOTS_PALETTE),
         "tokyonight" | "tokyo-night" => Some(TOKYONIGHT_PALETTE),
         "catppuccin" | "catppuccin-mocha" => Some(CATPPUCCIN_PALETTE),
         "nord" => Some(NORD_PALETTE),
@@ -233,6 +243,7 @@ pub fn builtin_theme_palette(name: &str) -> Option<&'static str> {
 
 pub fn list_available_themes() -> Vec<String> {
     let mut names = vec![
+        "bitzdots".to_string(),
         "default".to_string(),
         "tokyonight".to_string(),
         "catppuccin".to_string(),
