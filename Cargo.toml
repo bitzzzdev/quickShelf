@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "Mouse-enabled terminal shelf for application shortcuts and image drop previews"
 authors = ["bitzzdev"]
-license = "MIT"
+license = "LicenseRef-QuickShelf-Custom"
 repository = "https://github.com/bitzzdev/quickShelf"
 
 [dependencies]
