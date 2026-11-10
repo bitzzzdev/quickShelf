@@ -1,23 +1,28 @@
 # Quick Shelf
 
-Desktop shelf widget and Waybar popover for application shortcuts and image drop previews.
+Mouse-enabled terminal shelf for application shortcuts and image drop previews.
 
-Quick Shelf is a Wayland desktop widget and Waybar popover written in Rust with GTK3 and gtk-layer-shell. It provides a quick-access shelf for application shortcuts and an image drop zone with instant thumbnail previews, metadata inspection, and two-way drag and drop.
+Quick Shelf is a Rofi-style terminal UI written in Rust. It provides a
+keyboard-first shelf with mouse selection, click-to-open, right-click removal,
+drag-to-reorder, and path or file drops from terminal paste events. The
+bitzdots profile gives it the same compact, squared, Material color language
+as the rest of the desktop.
 
 ## Features
 
-- App Shortcuts: Pin frequently used applications, launch with a single click, or search and add installed system applications.
-- Image Drop Shelf: Drop images directly from file managers (like Nautilus) or web browsers into the shelf.
-- Two-way Drag and Drop: Drag images out of the shelf into external apps like Discord, GIMP, web forms, or file managers.
-- Instant Preview: Click any thumbnail to open an instant preview with image dimensions, file size, copy image data, copy file path, or open in the default viewer.
-- Homescreen Widget Mode: Runs on the desktop background layer behind normal windows using Wayland Layer Shell.
-- Waybar Integration: Can be placed as an interactive Waybar module with dynamic item counts, status tooltips, and click-to-toggle popover.
+- App Shortcuts: Pin applications with `--add-shortcut`, launch them with a click, and reorder them with the mouse.
+- Image Shelf: Add image paths through terminal bracketed paste and open them with a click.
+- Mouse Interaction: Click items to open them, right-click to remove them, scroll to select, and drag within a shelf to reorder it.
+- Metadata: Image entries show dimensions and file size in the terminal list.
+- Terminal UI: Runs in an alternate terminal screen with keyboard navigation and mouse capture.
+- Waybar Integration: Can launch the TUI through the existing module and report dynamic item counts.
 - Single Instance IPC: Fast Unix domain socket communication handles toggling, styling reloads, and adding items from scripts or keybindings.
-- Dynamic Theming: Adapts to wallpaper colors using Matugen with live CSS reloading.
+- Dynamic Theming: Adapts to wallpaper colors using Matugen with live palette reloading.
 
 ## Quick Installation
 
-Because compiling GUI Rust applications on low-resource machines is time consuming, precompiled release binaries are built automatically via GitHub Actions workflows.
+Precompiled Linux release binaries are built automatically via GitHub Actions
+so low-resource machines do not need to compile Rust locally.
 
 ### Method 1: Using the DEVos Shell Helper (in bitzdots)
 
@@ -47,17 +52,20 @@ Ensure `~/.local/bin` is in your `PATH`.
 
 ## Usage
 
-### Homescreen Widget Mode
+### Terminal UI
 
-Run Quick Shelf pinned to the desktop layer:
+Run Quick Shelf directly in a terminal:
 
 ```bash
-quick-shelf --homescreen
+quick-shelf --tui
 ```
 
-By default, it anchors to the top right of the desktop below Waybar. You can customize margins, width, and anchor in `~/.config/qshelf/config.json`.
+Use `q` or `Esc` to quit, arrow keys or `j`/`k` to move, `Enter` to open,
+`d` or right-click to remove, and left-button drag to reorder items within
+the app or image shelf. Dropping a path into a bracketed-paste-capable
+terminal adds a `.desktop` shortcut or supported image.
 
-### Toggle Popover Mode
+### Toggle Mode
 
 Toggle the floating popover shelf (useful for keyboard shortcuts or Waybar clicks):
 
@@ -65,11 +73,10 @@ Toggle the floating popover shelf (useful for keyboard shortcuts or Waybar click
 quick-shelf --toggle
 ```
 
-If the widget is already open, `--toggle` hides it. If hidden or not running, it displays the shelf.
-
-Popup mode is a regular floating window with the `quick-shelf` Hyprland class.
-Use the compositor's normal `SUPER + left mouse` binding to move it and
-Hyprland window rules to control its placement.
+If the TUI is already open, `--toggle` hides or shows it. If it is not
+running, Quick Shelf opens it in the first available terminal from
+`foot`, `kitty`, `alacritty`, or `wezterm`. Set
+`QUICK_SHELF_TERMINAL="kitty"` to choose a terminal explicitly.
 
 ### Waybar Status Output
 
@@ -92,12 +99,13 @@ USAGE:
     quick-shelf [OPTIONS]
 
 OPTIONS:
-    --homescreen, --desktop   Run as persistent homescreen widget on desktop background
-    --toggle                  Toggle popup shelf visibility (or launch popup if not running)
-    --popup                   Show popup shelf window
-    --hide                    Hide running popup shelf window
+    --homescreen, --desktop   Compatibility alias for the terminal shelf
+    --toggle                  Toggle the terminal shelf (or launch it)
+    --popup                   Show the terminal shelf
+    --tui                     Run the mouse-enabled terminal shelf directly
+    --hide                    Hide the running terminal shelf
     --status                  Output Waybar-compatible JSON status
-    --theme <NAME>            Apply a theme by name (built-in or from ~/.config/qshelf/themes/)
+    --theme <NAME>            Set the active profile name for integrations
     --list-themes             List all available built-in and user themes
     --reload-style            Reload CSS styling in running instance
     --add-shortcut <PATH>     Add an application .desktop file or executable
@@ -109,12 +117,16 @@ OPTIONS:
 
 ## Configuration
 
-Quick Shelf stores its configuration and CSS in `~/.config/qshelf/`. Shelf
+Quick Shelf stores its configuration and CSS in `~/.config/quick/shelf/`. Shelf
 items remain in the XDG data directory at `~/.local/share/quick-shelf/`.
+
+The shelf is a compact, keyboard-first Rofi-style terminal surface rather
+than a desktop panel. The terminal captures mouse clicks and drag gestures,
+and bracketed paste accepts paths from terminal file managers.
 
 ```json
 {
-  "theme": "default",
+  "theme": "bitzdots",
   "homescreen_anchor": "top-right",
   "margin_top": 40,
   "margin_right": 24,
@@ -123,27 +135,41 @@ items remain in the XDG data directory at `~/.local/share/quick-shelf/`.
   "width": 380,
   "max_height": 620,
   "default_view": "both",
-  "layer": "bottom"
+  "layer": "bottom",
+  "tui": {
+    "accent": "#d46478",
+    "background": "#160d11",
+    "foreground": "#f8e4df",
+    "muted": "#d4a8a2",
+    "selected": "#35182c",
+    "card": "#261420"
+  }
 }
 ```
 
-- `theme`: Active color theme (`default`, `tokyonight`, `catppuccin`, `nord`, `dracula`, `gruvbox`, `everforest`, `rose-pine`, or the name of a custom CSS file in `~/.config/qshelf/themes/`).
+- `theme`: Active color theme (`bitzdots`, `default`, `tokyonight`, `catppuccin`, `nord`, `dracula`, `gruvbox`, `everforest`, `rose-pine`, or the name of a custom CSS file in `~/.config/quick/shelf/themes/`). `bitzdots` is the default profile.
 - `homescreen_anchor`: Screen corner anchor (`top-right`, `top-left`, `bottom-right`, `bottom-left`).
 - `margin_top`: Offset from top screen edge in pixels (recommended 40px to clear Waybar).
 - `margin_right`: Offset from right screen edge in pixels.
 - `width`: Widget width in pixels.
 - `default_view`: Default tab to show (`both`, `apps`, or `media`).
 - `layer`: Layer shell level (`bottom` sits behind normal windows on the desktop).
+- `tui`: Terminal UI color tokens. Every value is a six-digit hex color and
+  can be changed without rebuilding Quick Shelf.
 
 ## Theming and Styling
 
-Quick Shelf uses a Rofi-like theming approach. The default layout uses square surfaces, a two-pixel accent border, compact controls, and flat selection states. Colors are decoupled from layout styles through GTK CSS variables (`@define-color`). You can swap built-in themes, create your own palette file to match your dotfiles, or hook into dynamic wallpaper generators like Matugen, Pywal, or Wallust.
+Quick Shelf uses a Rofi-like terminal palette. The default layout uses
+square surfaces, an accent border, compact controls, and flat selection
+states. The TUI colors can be edited directly in `config.json`, or generated
+from the `colors.css` file produced by Matugen, Pywal, or Wallust.
 
 ### Built-in Themes
 
-Eight themes are included out of the box:
+Nine profiles are included out of the box:
 
 - `default`: Warm berry dark mode
+- `bitzdots`: Default squared warm berry profile
 - `tokyonight`: Classic Tokyo Night dark blue palette
 - `catppuccin`: Catppuccin Mocha style pastel accents
 - `nord`: Arctic North dark slate and frost blue
@@ -164,9 +190,9 @@ Switch the theme on a running instance without restarting:
 quick-shelf --theme tokyonight
 ```
 
-### Custom Themes
+### Legacy GTK Theme Files
 
-To make a theme that matches your Rofi or Waybar config, place a `.css` file inside `~/.config/qshelf/themes/`. For example, create `~/.config/qshelf/themes/mytheme.css`:
+To make a theme that matches your Rofi or Waybar config, place a `.css` file inside `~/.config/quick/shelf/themes/`. For example, create `~/.config/quick/shelf/themes/mytheme.css`:
 
 ```css
 /* Quick Shelf theme variables matching Rofi conventions */
@@ -182,8 +208,8 @@ To make a theme that matches your Rofi or Waybar config, place a `.css` file ins
 @define-color card-hover rgba(70, 75, 95, 0.85);
 ```
 
-The built-in layout is loaded before `~/.config/qshelf/style.css`, so the
-last file can override geometry and typography as well as colors:
+The old GTK popup implementation used `style.css` and theme files. They are
+kept in the repository for migration history, but are not loaded by the TUI.
 
 ```css
 .quick-shelf-window {
@@ -204,7 +230,7 @@ quick-shelf --theme mytheme
 
 ### Automatic Wallpaper Theming (Matugen, Pywal, Wallust)
 
-If you use an automated wallpaper color generator, configure it to write colors to `~/.config/qshelf/colors.css`. Whenever this file exists, Quick Shelf automatically imports its variable definitions on top of the active theme.
+If you use an automated wallpaper color generator, configure it to write colors to `~/.config/quick/shelf/colors.css`. Whenever this file exists, Quick Shelf automatically imports its variable definitions on top of the active theme.
 
 Example template for Matugen or Pywal:
 
@@ -221,7 +247,7 @@ Example template for Matugen or Pywal:
 @define-color card-hover {{colors.surface_container_high.default.hex}};
 ```
 
-Trigger a style reload after updating colors:
+Trigger a palette reload after updating colors:
 
 ```bash
 quick-shelf --reload-style
@@ -229,15 +255,18 @@ quick-shelf --reload-style
 
 ### Custom Layout Overrides
 
-If you want to alter borders, paddings, fonts, or animations beyond color tokens, add custom CSS rules to `~/.config/qshelf/style.css`. Rules defined here load last and override default stylesheet properties.
+The GTK stylesheet files remain available for compatibility with older
+profiles, but the active interface is terminal-based. Rice the active TUI by
+editing the `tui` color tokens in `config.json`. This keeps the shelf fully
+customizable without changing the binary or touching stored shortcuts and
+images.
 
 ## Building from Source
 
 Dependencies:
-- GTK 3.24 development files (`libgtk-3-dev`)
-- GTK Layer Shell development files (`libgtk-layer-shell-dev`)
 - GLib and GdkPixbuf development files
-- Rust stable toolchain (1.75+)
+- A terminal emulator with mouse reporting and bracketed paste
+- Rust stable toolchain
 
 Build with Cargo:
 

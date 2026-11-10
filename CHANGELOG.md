@@ -6,6 +6,14 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+### Added
+- Added a mouse-enabled Ratatui terminal UI with keyboard navigation, click
+  actions, right-click removal, drag-to-reorder, and bracketed-paste path
+  drops.
+- Added an isolated per-user configuration root at `~/.config/quick/shelf/`
+  with migration from the previous `qshelf` and `quick-shelf` locations.
+- Added the `bitzdots` built-in profile and made it the default palette.
+
 ### Fixed
 - Fixed GTK3 and gtk-layer-shell compilation failures in GitHub Actions CI runner.
 - Corrected enum variant casing to PascalCase for `Orientation`, `Align`, and `StackTransitionType`.
@@ -16,17 +24,23 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 ### Added
 - Added Rofi-like CSS theming system powered by `@define-color` GTK color definitions.
 - Added eight built-in themes: `default`, `tokyonight`, `catppuccin`, `nord`, `dracula`, `gruvbox`, `everforest`, and `rose-pine`.
-- Added support for custom theme stylesheets in `~/.config/qshelf/themes/<theme>.css`.
-- Added support for automated wallpaper colors via `~/.config/qshelf/colors.css` (Matugen, Pywal, Wallust compatible).
+- Added support for custom theme stylesheets in
+  `~/.config/quick/shelf/themes/<theme>.css`.
+- Added support for automated wallpaper colors via
+  `~/.config/quick/shelf/colors.css` (Matugen, Pywal, Wallust compatible).
 - Added `--theme <NAME>` command line option to set the active theme and switch running instances.
 - Added `--list-themes` command line option to display available built-in and user-installed themes.
 - Added `set-theme <name>` command to Unix domain socket IPC for instant live switching.
-- Added `theme` configuration key in `~/.config/qshelf/config.json`.
+- Added `theme` configuration key in `~/.config/quick/shelf/config.json`.
 
 ### Changed
-- Moved Quick Shelf configuration and theme files to `~/.config/qshelf/`.
-- Migrated existing files from `~/.config/quick-shelf/` when the new
-  configuration directory is first initialized.
+- Changed the active shelf surface from a GTK popup/widget to a terminal UI
+  launched in the user's terminal emulator.
+- Moved Quick Shelf configuration and theme files to
+  `~/.config/quick/shelf/`.
+- Migrated existing files from `~/.config/qshelf/` and
+  `~/.config/quick-shelf/` when the new configuration directory is first
+  initialized.
 - Made popup mode a normal floating window so Hyprland rules and SUPER plus mouse movement apply.
 - Added sample theme stylesheets in `themes/` directory for dotfile sharing.
 - Added repository description and metadata in Cargo manifest.
