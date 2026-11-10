@@ -10,12 +10,13 @@ as the rest of the desktop.
 
 ## Features
 
-- App Shortcuts: Pin applications with `--add-shortcut`, launch them with a click, and reorder them with the mouse.
-- Image Shelf: Add image paths through terminal bracketed paste and open them with a click.
-- Mouse Interaction: Click items to open them, right-click to remove them, scroll to select, and drag within a shelf to reorder it.
-- Metadata: Image entries show dimensions and file size in the terminal list.
-- Terminal UI: Runs in an alternate terminal screen with keyboard navigation and mouse capture.
-- Waybar Integration: Can launch the TUI through the existing module and report dynamic item counts.
+- 1:1 Aspect Ratio: Displays in a square geometry by default (`640x640` floating window in Hyprland, with terminal cell ratio calculation).
+- Bento and List Formats: Switch between a modular bento card grid and a clean vertical list with `v` or `--view [bento|list]`.
+- Thumbnails and App Logos: Renders half-block graphical thumbnails for images and scaled app logos or Nerd Font icons in both modes.
+- In-TUI App Picker: Press `a` or `s` to search installed system applications and pin them instantly.
+- External Drag-and-Drop: Press `x`, middle-click, or drag outside the window to drop items directly into Discord, GIMP, browsers, or file managers via ripdrag/dragon and Wayland clipboard.
+- Mouse Interaction: Click to open, right-click to remove, scroll to select, and drag within a shelf to reorder.
+- Image Shelf: Add image paths through bracketed paste, preview dimensions, and drag out to external apps.
 - Single Instance IPC: Fast Unix domain socket communication handles toggling, styling reloads, and adding items from scripts or keybindings.
 - Dynamic Theming: Adapts to wallpaper colors using Matugen with live palette reloading.
 
@@ -99,20 +100,27 @@ USAGE:
     quick-shelf [OPTIONS]
 
 OPTIONS:
-    --homescreen, --desktop   Compatibility alias for the terminal shelf
-    --toggle                  Toggle the terminal shelf (or launch it)
-    --popup                   Show the terminal shelf
+    --homescreen, --desktop   Run as persistent homescreen widget on desktop background
+    --toggle                  Toggle popup shelf visibility (or launch popup if not running)
+    --popup                   Show popup shelf window
     --tui                     Run the mouse-enabled terminal shelf directly
-    --hide                    Hide the running terminal shelf
-    --status                  Output Waybar-compatible JSON status
-    --theme <NAME>            Set the active profile name for integrations
-    --list-themes             List all available built-in and user themes
-    --reload-style            Reload CSS styling in running instance
+    --bento                   Set shelf view format to bento box tile grid
+    --list                    Set shelf view format to vertical list
+    --view <MODE>             Set or show view format ('bento' or 'list')
+    --aspect-ratio <RATIO>    Set default aspect ratio ('1:1', '16:9', '4:3', 'free')
+    --ratio <RATIO>           Alias for --aspect-ratio
+    --add-app [PATH]          Interactive app picker or add application by desktop path
     --add-shortcut <PATH>     Add an application .desktop file or executable
     --add-image <PATH>        Add an image to the shelf
     --clear-images            Clear all images from the shelf
+    --theme <NAME>            Apply theme (switches live if running, or updates config)
+    --list-themes             List available built-in and user themes
+    --reload-style            Reload CSS styling in running instance
+    --update                  Update quick-shelf binary, restart instance, and notify
+    --status                  Output Waybar-compatible JSON status
+    --hide                    Hide running popup shelf window
     --version, -v             Print version information
-    --help, -h                Print help message
+    --help, -h                Print this help message
 ```
 
 ## Configuration
@@ -292,4 +300,8 @@ The resulting binary will be placed at `target/release/quick-shelf`.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+Quick Shelf Source License and Non-Commercial Agreement. See [LICENSE](LICENSE) for details:
+- Free for personal, educational, and non-commercial use.
+- Forkers and redistributors must provide clear attribution and a link to https://github.com/bitzzdev/quickShelf.
+- Derivatives cannot be modified and distributed under another license.
+- Commercial use requires prior written permission from Dev Borah and may require a one-time or periodic fee.

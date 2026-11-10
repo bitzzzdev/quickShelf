@@ -7,6 +7,13 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 ## [Unreleased]
 
 ### Added
+- Added 1:1 default square aspect ratio geometry for the shelf surface.
+- Added `--aspect-ratio` and `--ratio` commands to change or query default aspect ratio.
+- Added Bento box card grid format (`bento`) and vertical list format (`list`) with `v` or `m` key runtime toggle.
+- Added half-block graphical thumbnail rendering for images and app logo icon resolution for applications in both bento and list formats.
+- Added an in-TUI application search and picker modal (press `a` or `s`) and `--add-app` command to pin installed desktop applications.
+- Added external drag-and-drop support (via `x`, middle-click, or dragging outside the shelf area), spawning `ripdrag` or `dragon` when installed and copying to Wayland clipboard.
+- Added `--update` command that downloads the latest release binary, stops running instances (`pkill`), and emits a desktop notification.
 - Added a mouse-enabled Ratatui terminal UI with keyboard navigation, click
   actions, right-click removal, drag-to-reorder, and bracketed-paste path
   drops.
@@ -30,6 +37,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Added unit tests for desktop entry parsing, exec argument sanitation, and image format detection.
 
 ### Changed
+- Updated repository license to Quick Shelf Source License and Non-Commercial Agreement with mandatory attribution, no relicensing, and commercial authorization requirements.
+- Changed default shelf surface geometry to 1:1 aspect ratio.
 - Made mouse drag events update the reorder target before release, matching
   terminal UI pointer behavior instead of treating every click as a drag.
 - Made section order configurable while keeping application and image data in

@@ -33,15 +33,17 @@ Create `~/.config/quick/shelf/config.json`:
     "selected": "#4b2038",
     "card": "#281824",
     "layout": {
+      "aspect_ratio": "1:1",
+      "view_mode": "bento",
       "width_percent": 88,
-      "height_percent": 78,
+      "height_percent": 88,
       "header_height": 3,
       "footer_height": 2,
       "content_padding": 1,
       "detail_width": 36,
       "title": "MY SHELF",
       "subtitle": "click to open, drag to reorder",
-      "footer_hint": "q quit   enter open   d delete   drag reorder",
+      "footer_hint": "q quit  enter open  a add app  x drag out  v view  d del",
       "section_order": ["apps", "images"],
       "show_header": true,
       "show_footer": true,
@@ -57,11 +59,19 @@ parts you want to change.
 
 ## Layout controls
 
-`width_percent` and `height_percent` control the centered panel size inside
-the terminal. `header_height`, `footer_height`, and `content_padding` control
-the panel geometry. `show_header` and `show_footer` let a compact profile
-remove either region. `show_details` hides command lines and image dimensions
-when you want a tighter list.
+`aspect_ratio` defaults to `"1:1"` (square aspect ratio computed from terminal
+character cells). It also accepts `"16:9"`, `"4:3"`, or `"free"`. When set to
+`"free"`, `width_percent` and `height_percent` control the centered panel size.
+
+`view_mode` controls the presentation format: `"bento"` arranges items in a
+modular tile card grid, while `"list"` presents a vertical list. In both modes,
+graphical image thumbnails and application logos or badges are displayed. You can
+toggle view formats at runtime by pressing `v` or running `quick-shelf --view`.
+
+`header_height`, `footer_height`, and `content_padding` control the panel
+geometry. `show_header` and `show_footer` let a compact profile remove either
+region. `show_details` hides command lines and image dimensions when you want a
+tighter display.
 
 `section_order` accepts `apps` or `shortcuts`, and `images` or `media`. For
 example, put images before applications:
